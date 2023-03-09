@@ -125,6 +125,7 @@ install-html:
 clean-html:
 	$(MAKE) -C doc/manual clean
 
+
 install-dirs:
 	mkdir -p $(DESTDIR)$(PYTHON_SITELIB)
 	mkdir -p $(DESTDIR)$(TUNED_PROFILESDIR)
@@ -220,6 +221,8 @@ install: install-dirs
 
 	# desktop file
 	install -dD $(DESTDIR)$(DATADIR)/applications
+
+desktop:
 	desktop-file-install --dir=$(DESTDIR)$(DATADIR)/applications tuned-gui.desktop
 
 clean: clean-html
