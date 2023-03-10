@@ -284,7 +284,7 @@ class NetTuningPlugin(base.Plugin):
 
     @staticmethod
     def _init_stats_and_idle(instance, device):
-        max_speed = self._calc_speed(ethcard(device).get_max_speed())
+        max_speed = NetTuningPlugin._calc_speed(ethcard(device).get_max_speed())
         instance._stats[device] = {"new": 4 * [0], "max": 2 * [max_speed, 1]}
         instance._idle[device] = {"level": 0, "read": 0, "write": 0}
 
