@@ -611,7 +611,9 @@ class BootloaderPlugin(base.Plugin):
     def add_modify_option_woquotes_in_file(self, f, d, add=True):
         """
         """
+        log.info(f"Reading grub from: {f}")
         data = self._cmd.read_file(f)
+        log.info(f"Photon OS grub data data from: {data}")
         for opt in d:
             o = str(opt)
             v = str(d[opt])
@@ -622,7 +624,7 @@ class BootloaderPlugin(base.Plugin):
                 else:
                     data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + v, data, flags=re.MULTILINE)
 
-        log.info(f"Saving photon os grub data: {data}")
+        log.info(f"Saving photon os grub data: {data} to {f}")
         return self._cmd.write_to_file(f, data)
 
     def _patch_photon_tuned_cfg(self, d):
