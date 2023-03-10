@@ -114,7 +114,7 @@ class DiskPlugin(hotplug.Plugin):
         return [self._hardware_inventory.get_device("block", x) for x in devices]
 
     def _is_hdparm_apm_supported(self, device):
-        (rc, out, err_msg) = self._cmd.execute(["hdparm", "-C", "/dev/%s" % device], \
+        (rc, out, err_msg) = self._cmd.execute(["hdparm", "-C", "/dev/%s" % device],
                                                no_errors=[errno.ENOENT], return_err=True)
         if rc == -errno.ENOENT:
             log.warn("hdparm command not found, ignoring for other devices")
@@ -133,7 +133,7 @@ class DiskPlugin(hotplug.Plugin):
     def _device_is_supported(cls, device):
         return device.device_type == "disk" and \
             device.attributes.get("removable", None) == b"0" and \
-            (device.parent is None or \
+            (device.parent is None or
              device.parent.subsystem in ["scsi", "virtio", "xen", "nvme"])
 
     def _hardware_events_init(self):
