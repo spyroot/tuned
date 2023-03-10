@@ -33,18 +33,11 @@ class SysfsPlugin(base.Plugin):
     ====
     """
 
-    def _instance_unapply_dynamic(self, instance, device):
-        pass
-
-    def _instance_update_dynamic(self, instance, device):
-        pass
-
     # TODO: resolve possible conflicts with sysctl settings from other plugins
-
     def __init__(self, *args, **kwargs):
         super(SysfsPlugin, self).__init__(*args, **kwargs)
-        self.__sysfs = None
-        self.__sysfs_original = None
+        self._sysfs = None
+        self._sysfs_original = None
         self._has_dynamic_options = True
         self._cmd = commands()
 
@@ -63,19 +56,19 @@ class SysfsPlugin(base.Plugin):
 
     @property
     def sysfs(self):
-        return self.__sysfs
+        return self._sysfs
 
     @sysfs.setter
     def sysfs(self, v):
-        self.__sysfs = v
+        self._sysfs = v
 
     @property
     def sysfs_original(self):
-        return self.__sysfs_original
+        return self._sysfs_original
 
     @sysfs_original.setter
     def sysfs_original(self, v):
-        self.__sysfs_original = v
+        self._sysfs_original = v
 
     def _instance_apply_static(self, instance):
         for key, value in list(instance.sysfs.items()):
@@ -115,3 +108,9 @@ class SysfsPlugin(base.Plugin):
 
     def _write_sysfs(self, sysfs_file, value):
         return self._cmd.write_to_file(sysfs_file, value)
+
+    def _instance_unapply_dynamic(self, instance, device):
+        pass
+
+    def _instance_update_dynamic(self, instance, device):
+        pass
