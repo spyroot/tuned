@@ -749,7 +749,7 @@ class BootloaderPlugin(base.Plugin):
         return True
 
     @command_custom("grub2_cfg_file")
-    def _grub2_cfg_file(self, enabling, value, verify):
+    def _grub2_cfg_file(self, enabling, value, verify, ignore_missing):
         # nothing to verify
         if verify:
             return None
@@ -757,7 +757,7 @@ class BootloaderPlugin(base.Plugin):
             self._grub2_cfg_file_names = [str(value)]
 
     @command_custom("initrd_dst_img")
-    def _initrd_dst_img(self, enabling, value, verify):
+    def _initrd_dst_img(self, enabling, value, verify, ignore_missing):
         # nothing to verify
         if verify:
             return None
@@ -769,7 +769,7 @@ class BootloaderPlugin(base.Plugin):
                 self._initrd_dst_img_val = os.path.join(consts.BOOT_DIR, self._initrd_dst_img_val)
 
     @command_custom("initrd_remove_dir")
-    def _initrd_remove_dir(self, enabling, value, verify):
+    def _initrd_remove_dir(self, enabling, value, verify, ignore_missing):
         # nothing to verify
         if verify:
             return None
@@ -777,7 +777,7 @@ class BootloaderPlugin(base.Plugin):
             self._initrd_remove_dir = self._cmd.get_bool(value) == "1"
 
     @command_custom("initrd_add_img", per_device=False, priority=10)
-    def _initrd_add_img(self, enabling, value, verify):
+    def _initrd_add_img(self, enabling, value, verify, ignore_missing):
         # nothing to verify
         if verify:
             return None
@@ -790,7 +790,7 @@ class BootloaderPlugin(base.Plugin):
                 return False
 
     @command_custom("initrd_add_dir", per_device=False, priority=10)
-    def _initrd_add_dir(self, enabling, value, verify):
+    def _initrd_add_dir(self, enabling, value, verify, ignore_missing):
         # nothing to verify
         if verify:
             return None
@@ -820,7 +820,7 @@ class BootloaderPlugin(base.Plugin):
                 self._cmd.rmtree(src_dir)
 
     @command_custom("cmdline", per_device=False, priority=10)
-    def _cmdline(self, enabling, value, verify, **kwargs):
+    def _cmdline(self, enabling, value, verify, ignore_missing):
         v = self._variables.expand(self._cmd.unquote(value))
         if verify:
             if self._rpm_ostree:
@@ -853,7 +853,7 @@ class BootloaderPlugin(base.Plugin):
             self._cmdline_val = v
 
     @command_custom("skip_grub_config", per_device=False, priority=10)
-    def _skip_grub_config(self, enabling, value, verify):
+    def _skip_grub_config(self, enabling, value, verify, ignore_missing):
         if verify:
             return None
         if enabling and value is not None:
