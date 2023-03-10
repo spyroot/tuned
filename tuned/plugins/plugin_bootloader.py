@@ -820,7 +820,7 @@ class BootloaderPlugin(base.Plugin):
                 self._cmd.rmtree(src_dir)
 
     @command_custom("cmdline", per_device=False, priority=10)
-    def _cmdline(self, enabling, value, verify):
+    def _cmdline(self, enabling, value, verify, **kwargs):
         v = self._variables.expand(self._cmd.unquote(value))
         if verify:
             if self._rpm_ostree:
