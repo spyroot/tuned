@@ -616,12 +616,14 @@ class BootloaderPlugin(base.Plugin):
         log.info(f"Reading grub from: {f} adding {add}")
         data = self._cmd.read_file(f)
         log.info(f"Photon OS grub data data from: {data}")
+        log.info(f"Photon OS new data data from: {d}")
         for opt in d:
             o = str(opt)
             v = str(d[opt])
             if re.search(r"\b" + o + r"\s*=.*$", data, flags=re.MULTILINE) is None:
                 if add:
                     if len(data) > 0 and data[-1] != "\n":
+                        log.info(f"adding {o} {v}")
                         data += f"\n{o}={v}\n" "%s=%s\n"
             else:
                 # filter all empty intel_iommu= value
