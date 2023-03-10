@@ -26,7 +26,7 @@ ERROR_THRESHOLD = 3
 
 # bootloader plugin configuration
 BOOT_DIR = "/boot"
-GRUB2_CFG_FILES = ["/boot/grub2/grub.cfg", "/etc/grub2.cfg", "/etc/grub2-efi.cfg", "/boot/efi/boot/grub2/grub.cfg"]
+GRUB2_CFG_FILES = ["/boot/grub2/grub.cfg", "/etc/grub2.cfg", "/boot/grub2/grub.cfg", "/boot/efi/boot/grub2/grub.cfg"]
 GRUB2_CFG_DIR = "/etc/grub.d"
 GRUB2_TUNED_TEMPLATE_NAME = "00_tuned"
 GRUB2_TUNED_TEMPLATE_PATH = GRUB2_CFG_DIR + "/" + GRUB2_TUNED_TEMPLATE_NAME
@@ -44,6 +44,7 @@ PETITBOOT_DETECT_DIR = "/sys/firmware/opal"
 MACHINE_ID_FILE = "/etc/machine-id"
 KERNEL_UPDATE_HOOK_FILE = "/usr/lib/kernel/install.d/92-tuned.install"
 BLS_ENTRIES_PATH = "/boot/loader/entries"
+PHOTON_TUNED_CFG_FILE = "/boot/tuned.cfg"
 
 # scheduler plugin configuration
 # how many times retry to move tasks to parent cgroup on cgroup cleanup

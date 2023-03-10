@@ -188,7 +188,7 @@ class BootloaderPlugin(base.Plugin):
 	"""
 
 	def __init__(self, *args, **kwargs):
-		if not os.path.isfile(consts.GRUB2_TUNED_TEMPLATE_PATH):
+		if not os.path.isfile(consts.PHOTON_TUNED_CFG_FILE):
 			raise exceptions.NotSupportedPluginException("Required GRUB2 template not found, disabling plugin.")
 		super(BootloaderPlugin, self).__init__(*args, **kwargs)
 		self._cmd = commands()
@@ -369,6 +369,7 @@ class BootloaderPlugin(base.Plugin):
 
 	def _remove_grub2_tuning(self):
 		self._patch_bootcmdline({consts.BOOT_CMDLINE_TUNED_VAR : "", consts.BOOT_CMDLINE_INITRD_ADD_VAR : ""})
+		self._patch_photon_tuned_cfg({consts.GRUB2_TUNED_VAR: "", consts.GRUB2_TUNED_INITRD_VAR: ""})
 		if not self._grub2_cfg_file_names:
 			log.info("cannot find grub.cfg to patch")
 			return
@@ -407,6 +408,7 @@ class BootloaderPlugin(base.Plugin):
 		grub2_cfg = re.sub(r" *\$" + consts.GRUB2_TUNED_VAR, "", cfg, flags = re.MULTILINE)
 		cfg = re.sub(r"^\s*set\s+" + consts.GRUB2_TUNED_INITRD_VAR + "\s*=.*\n", "", grub2_cfg, flags = re.MULTILINE)
 		grub2_cfg = re.sub(r" *\$" + consts.GRUB2_TUNED_INITRD_VAR, "", cfg, flags = re.MULTILINE)
+		grub2_cfg = re.sub(r'(?m).*tuned.cfg\n?', '', grub2_cfg)
 		cfg = re.sub(consts.GRUB2_TEMPLATE_HEADER_BEGIN + r"\n", "", grub2_cfg, flags = re.MULTILINE)
 		return re.sub(consts.GRUB2_TEMPLATE_HEADER_END + r"\n+", "", cfg, flags = re.MULTILINE)
 
@@ -417,7 +419,7 @@ class BootloaderPlugin(base.Plugin):
 			s += r"set " + self._cmd.escape(opt) + "=\"" + self._cmd.escape(d[opt]) + "\"\n"
 		s += consts.GRUB2_TEMPLATE_HEADER_END + r"\n"
 		grub2_cfg = re.sub(r"^(\s*###\s+END\s+[^#]+/00_header\s+### *)\n", s, grub2_cfg, flags = re.MULTILINE)
-
+		grub2_cfg = re.sub(r"(load_env -f /boot/photon.cfg)", r"\1\nload_env -f /boot/tuned.cfg", grub2_cfg)
 		d2 = {"linux" : consts.GRUB2_TUNED_VAR, "initrd" : consts.GRUB2_TUNED_INITRD_VAR}
 		for i in d2:
 			# add TuneD parameters to all kernels
@@ -508,8 +510,12 @@ class BootloaderPlugin(base.Plugin):
 			return
 		self._patch_bootcmdline({consts.BOOT_CMDLINE_TUNED_VAR : self._cmdline_val, consts.BOOT_CMDLINE_KARGS_DELETED_VAR : self._dict_to_options(d)})
 
+	def _patch_photon_tuned_cfg(self, d):
+		return self._cmd.add_modify_option_woquotes_in_file(consts.PHOTON_TUNED_CFG_FILE, d)
+
 	def _grub2_update(self):
 		self._grub2_cfg_patch({consts.GRUB2_TUNED_VAR : self._cmdline_val, consts.GRUB2_TUNED_INITRD_VAR : self._initrd_val})
+		self._patch_photon_tuned_cfg({consts.GRUB2_TUNED_VAR: self._cmdline_val, consts.GRUB2_TUNED_INITRD_VAR: self._initrd_val})
 		self._patch_bootcmdline({consts.BOOT_CMDLINE_TUNED_VAR : self._cmdline_val, consts.BOOT_CMDLINE_INITRD_ADD_VAR : self._initrd_val})
 
 	def _has_bls(self):
