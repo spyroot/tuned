@@ -1167,7 +1167,7 @@ class SchedulerPlugin(base.Plugin):
         ret2 = self._cgroup_verify_affinity()
         return ret1 and ret2
 
-    def _add_pid(self, instance, pid, r):
+    def _add_pid(self, instance, pid: int, r):
         try:
             cmd = SchedulerPlugin._get_cmdline(pid)
         except (OSError, IOError) as e:
@@ -1187,7 +1187,7 @@ class SchedulerPlugin(base.Plugin):
             self._storage.set(self._scheduler_storage_key,
                               self._scheduler_original)
 
-    def _remove_pid(self, pid):
+    def _remove_pid(self, pid: int):
         if pid in self._scheduler_original:
             del self._scheduler_original[pid]
             log.debug("removed PID %d from the rollback database" % pid)
@@ -1217,7 +1217,7 @@ class SchedulerPlugin(base.Plugin):
                             if event.type == perf.RECORD_COMM or \
                                     (self._perf_process_fork_value and event.type == perf.RECORD_FORK):
                                 # TODO this line unclear
-                                self._add_pid(int(event.tid), r)
+                                self._add_pid(instance, int(event.tid), r)
                             elif event.type == perf.RECORD_EXIT:
                                 self._remove_pid(int(event.tid))
 
