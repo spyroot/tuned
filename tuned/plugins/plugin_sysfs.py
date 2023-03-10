@@ -56,19 +56,19 @@ class SysfsPlugin(base.Plugin):
 
     @property
     def sysfs(self):
-        return self.sysfs
+        return self._sysfs
 
     @sysfs.setter
     def sysfs(self, v):
-        self.sysfs = v
+        self._sysfs = v
 
     @property
     def sysfs_original(self):
-        return self.sysfs_original
+        return self._sysfs_original
 
     @sysfs_original.setter
     def sysfs_original(self, v):
-        self.sysfs_original = v
+        self._sysfs_original = v
 
     def _instance_apply_static(self, instance):
         for key, value in list(instance.sysfs.items()):
