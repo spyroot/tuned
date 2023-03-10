@@ -36,8 +36,8 @@ class SysfsPlugin(base.Plugin):
     # TODO: resolve possible conflicts with sysctl settings from other plugins
     def __init__(self, *args, **kwargs):
         super(SysfsPlugin, self).__init__(*args, **kwargs)
-        self._sysfs = None
-        self._sysfs_original = None
+        self.sysfs = None
+        self.sysfs_original = None
         self._has_dynamic_options = True
         self._cmd = commands()
 
@@ -56,19 +56,19 @@ class SysfsPlugin(base.Plugin):
 
     @property
     def sysfs(self):
-        return self._sysfs
+        return self.sysfs
 
     @sysfs.setter
     def sysfs(self, v):
-        self._sysfs = v
+        self.sysfs = v
 
     @property
     def sysfs_original(self):
-        return self._sysfs_original
+        return self.sysfs_original
 
     @sysfs_original.setter
     def sysfs_original(self, v):
-        self._sysfs_original = v
+        self.sysfs_original = v
 
     def _instance_apply_static(self, instance):
         for key, value in list(instance.sysfs.items()):
