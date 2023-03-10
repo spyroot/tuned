@@ -486,7 +486,8 @@ class BootloaderPlugin(base.Plugin):
 
         if is_photon_os():
             grub2_cfg = re.sub(
-                r"(load_env -f /boot/photon.cfg)", r"\1\nload_env -f /boot/tuned.cfg", grub2_cfg)
+                r"(load_env -f /boot/photon.cfg)",
+                r"\1\nload_env -f /boot/tuned.cfg", grub2_cfg)
 
         d2 = {
             "linux": consts.GRUB2_TUNED_VAR,
@@ -506,6 +507,7 @@ class BootloaderPlugin(base.Plugin):
                 r"^(\s*" + i + r"(?:16|efi)?\s+\S+rescue.*) +$", r"\1",
                 grub2_cfg, flags=re.MULTILINE
             )
+        log.info(f"Generated config {grub2_cfg}")
         return grub2_cfg
 
     def _grub2_default_env_patch(self):
