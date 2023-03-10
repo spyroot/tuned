@@ -613,7 +613,7 @@ class BootloaderPlugin(base.Plugin):
     def add_modify_option_woquotes_in_file(self, f: str, d: dict, add=True):
         """
         """
-        log.info(f"Reading grub from: {f}")
+        log.info(f"Reading grub from: {f} add_data {add}")
         data = self._cmd.read_file(f)
         log.info(f"Photon OS grub data data from: {data}")
         for opt in d:
