@@ -522,8 +522,16 @@ class SchedulerPlugin(base.Plugin):
                  device_matcher_udev,
                  plugin_instance_factory,
                  global_cfg, variables):
-        super(SchedulerPlugin, self).__init__(monitor_repository, storage_factory, hardware_inventory, device_matcher,
-                                              device_matcher_udev, plugin_instance_factory, global_cfg, variables)
+        super(SchedulerPlugin, self).__init__(
+            monitor_repository,
+            storage_factory,
+            hardware_inventory,
+            device_matcher,
+            device_matcher_udev,
+            plugin_instance_factory,
+            global_cfg,
+            variables)
+
         self._runtime_tuning = False
         self._has_dynamic_options = True
         self._daemon = consts.CFG_DEF_DAEMON
@@ -567,6 +575,10 @@ class SchedulerPlugin(base.Plugin):
     def runtime_tuning(self):
         return self._runtime_tuning
 
+    @runtime_tuning.setter
+    def runtime_tuning(self, v):
+        self._runtime_tuning = v
+
     def _instance_init(self, instance):
         instance._has_dynamic_tuning = False
         instance._has_static_tuning = True
@@ -579,6 +591,7 @@ class SchedulerPlugin(base.Plugin):
         # recover original values in case of crash
         self._scheduler_original = self._storage.get(
             self._scheduler_storage_key, {})
+
         if len(self._scheduler_original) > 0:
             log.info("recovering scheduling settings from previous run")
             self._restore_ps_affinity()
