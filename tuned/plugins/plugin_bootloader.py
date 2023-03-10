@@ -719,14 +719,15 @@ class BootloaderPlugin(base.Plugin):
         if self._initrd_dst_img_val is None:
             self._initrd_dst_img_val = os.path.join(consts.BOOT_DIR, os.path.basename(name))
 
-    def _check_petitboot(self):
+    @staticmethod
+    def _check_petitboot():
         return os.path.isdir(consts.PETITBOOT_DETECT_DIR)
 
     def _install_initrd(self, img):
         if self._rpm_ostree:
             log.warn("Detected rpm-ostree which doesn't support initrd overlays.")
             return False
-        if self._check_petitboot():
+        if BootloaderPlugin._check_petitboot():
             log.warn(
                 "Detected Petitboot which doesn't support initrd overlays. "
                 "The initrd overlay will be ignored by bootloader."
@@ -838,7 +839,7 @@ class BootloaderPlugin(base.Plugin):
                 cmdline_dict = {v.split("=", 1)[0]: v for v in cmdline_set}
                 for m in missing_set:
                     arg = m.split("=", 1)[0]
-                    if not arg in cmdline_dict:
+                    if arg not in cmdline_dict:
                         log.error(consts.STR_VERIFY_PROFILE_CMDLINE_FAIL_MISSING % (arg, m))
                     else:
                         log.error(consts.STR_VERIFY_PROFILE_CMDLINE_FAIL % (cmdline_dict[arg], m))
