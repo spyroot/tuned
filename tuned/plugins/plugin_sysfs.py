@@ -49,6 +49,7 @@ class SysfsPlugin(base.Plugin):
         self._cmd = commands()
 
     def _instance_init(self, instance):
+        log.info(f"Instace of {type(instance)}")
         instance._has_dynamic_tuning = False
         instance._has_static_tuning = True
         instance.sysfs = dict(

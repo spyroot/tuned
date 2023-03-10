@@ -25,33 +25,40 @@ class commands:
         if self._logging:
             log.debug(msg)
 
-    def get_bool(self, value):
+    @staticmethod
+    def get_bool(value):
         v = str(value).upper().strip()
         return {"Y": "1", "YES": "1", "T": "1", "TRUE": "1", "N": "0", "NO": "0", "F": "0", "FALSE": "0"}.get(v, value)
 
-    def remove_ws(self, s):
+    @staticmethod
+    def remove_ws(s):
         if s is not None:
             return re.sub('\s+', ' ', str(s)).strip()
 
-    def unquote(self, v):
+    @staticmethod
+    def unquote(v):
         return re.sub("^\"(.*)\"$", r"\1", v)
 
     # escape escape character (by default '\')
-    def escape(self, s, what_escape="\\", escape_by="\\"):
+    @staticmethod
+    def escape(s, what_escape="\\", escape_by="\\"):
         return s.replace(what_escape, "%s%s" % (escape_by, what_escape))
 
     # clear escape characters (by default '\')
-    def unescape(self, s, escape_char="\\"):
+    @staticmethod
+    def unescape(s, escape_char="\\"):
         return s.replace(escape_char, "")
 
     # add spaces to align s2 to pos, returns resulting string: s1 + spaces + s2
-    def align_str(self, s1, pos, s2):
+    @staticmethod
+    def align_str(s1, pos, s2):
         return s1 + " " * (pos - len(s1)) + s2
 
     # convert dictionary 'd' to flat list and return it
     # it uses sort on the dictionary items to return consistent results
     # for directories with different inserte/delete history
-    def dict2list(self, d):
+    @staticmethod
+    def dict2list(d):
         l = []
         if d is not None:
             for i in sorted(d.items()):
@@ -159,7 +166,8 @@ class commands:
             return False
         return True
 
-    def copy(self, src, dst, no_error=False):
+    @staticmethod
+    def copy(src, dst, no_error=False):
         try:
             log.debug("copying file '%s' to '%s'" % (src, dst))
             shutil.copy(src, dst)
@@ -172,7 +180,7 @@ class commands:
     def replace_in_file(self, f, pattern, repl):
         data = self.read_file(f)
         if len(data) <= 0:
-            return False;
+            return False
         return self.write_to_file(f, re.sub(pattern, repl, data, flags=re.MULTILINE))
 
     # do multiple replaces in file 'f' by using dictionary 'd',
@@ -256,8 +264,8 @@ class commands:
                 if not return_err:
                     self._error(err_msg)
         except (OSError, IOError) as e:
-            retcode = -e.errno if e.errno is not None else -1
-            if not abs(retcode) in no_errors and 0 not in no_errors:
+            ret_code = -e.errno if e.errno is not None else -1
+            if not abs(ret_code) in no_errors and 0 not in no_errors:
                 err_msg = "Executing %s error: %s" % (args[0], e)
                 if not return_err:
                     self._error(err_msg)
@@ -427,25 +435,29 @@ class commands:
         s = s.zfill(ls)
         return ",".join(s[i:i + 8] for i in range(0, len(s), 8))
 
-    def cpulist2bitmask(self, l):
+    @staticmethod
+    def cpulist2bitmask(l):
         m = 0
         for v in l:
             m |= pow(2, v)
         return m
 
-    def cpulist2string(self, l):
+    @staticmethod
+    def cpulist2string(l):
         return ",".join(str(v) for v in l)
 
     # Do not make balancing on patched Python 2 interpreter (rhbz#1028122).
     # It means less CPU usage on patchet interpreter. On non-patched interpreter
     # it is not allowed to sleep longer than 50 ms.
-    def wait(self, terminate, time):
+    @staticmethod
+    def wait(terminate, time):
         try:
             return terminate.wait(time, False)
         except:
             return terminate.wait(time)
 
-    def get_size(self, s):
+    @staticmethod
+    def get_size(s):
         s = str(s).strip().upper()
         for unit in ["KB", "MB", "GB", ""]:
             unit_ix = s.rfind(unit)
@@ -466,7 +478,8 @@ class commands:
             except ValueError:
                 return None
 
-    def get_active_profile(self):
+    @staticmethod
+    def get_active_profile():
         profile_name = ""
         mode = ""
         try:
@@ -495,7 +508,8 @@ class commands:
             profile_name = None
         return profile_name, manual
 
-    def save_active_profile(self, profile_name, manual):
+    @staticmethod
+    def save_active_profile(profile_name, manual):
         try:
             with open(consts.ACTIVE_PROFILE_FILE, "w") as f:
                 if profile_name is not None:
@@ -509,7 +523,8 @@ class commands:
         except (OSError, IOError) as e:
             raise TunedException("Failed to save profile mode: %s" % e.strerror)
 
-    def get_post_loaded_profile(self):
+    @staticmethod
+    def get_post_loaded_profile():
         profile_name = ""
         try:
             with open(consts.POST_LOADED_PROFILE_FILE, "r") as f:
@@ -523,7 +538,8 @@ class commands:
             profile_name = None
         return profile_name
 
-    def save_post_loaded_profile(self, profile_name):
+    @staticmethod
+    def save_post_loaded_profile(profile_name):
         try:
             with open(consts.POST_LOADED_PROFILE_FILE, "w") as f:
                 if profile_name is not None:
