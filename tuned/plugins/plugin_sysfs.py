@@ -51,11 +51,10 @@ class SysfsPlugin(base.Plugin):
     def _instance_init(self, instance):
         instance._has_dynamic_tuning = False
         instance._has_static_tuning = True
-
-        instance._sysfs = dict(
+        instance.sysfs = dict(
             [(os.path.normpath(key_value[0]), key_value[1])
              for key_value in list(instance.options.items())])
-        instance._sysfs_original = {}
+        instance.sysfs_original = {}
 
     def _instance_cleanup(self, instance):
         pass
@@ -63,6 +62,10 @@ class SysfsPlugin(base.Plugin):
     @property
     def sysfs(self):
         return self._sysfs
+
+    @sysfs.setter
+    def sysfs(self, v):
+        self._sysfs = v
 
     @property
     def sysfs_original(self):
