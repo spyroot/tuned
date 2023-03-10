@@ -425,6 +425,7 @@ class BootloaderPlugin(base.Plugin):
         if not self._grub2_cfg_file_names:
             log.info("cannot find grub.cfg to patch")
             return
+
         for f in self._grub2_cfg_file_names:
             self._cmd.add_modify_option_in_file(
                 f,
