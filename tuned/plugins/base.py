@@ -21,8 +21,15 @@ class Plugin(object):
     """
 
     def __init__(
-            self, monitors_repository, storage_factory, hardware_inventory, device_matcher, device_matcher_udev,
-            instance_factory, global_cfg, variables):
+            self,
+            monitors_repository,
+            storage_factory,
+            hardware_inventory,
+            device_matcher,
+            device_matcher_udev,
+            instance_factory,
+            global_cfg,
+            variables):
         """Plugin constructor."""
 
         self._storage = storage_factory.create(self.__class__.__name__)
@@ -239,9 +246,10 @@ class Plugin(object):
             log.debug("using environment '%s'" % str(list(environ.items())))
             try:
                 proc = Popen([script] + arguments,
-							 stdout=PIPE, stderr=PIPE,
-							 close_fds=True, env=environ,
-							 cwd=dir_name, universal_newlines=True)
+                             stdout=PIPE, stderr=PIPE,
+                             close_fds=True, env=environ,
+                             cwd=dir_name,
+                             universal_newlines=True)
                 out, err = proc.communicate()
                 if proc.returncode:
                     log.error("script '%s' error: %d, '%s'" % (script, proc.returncode, err[:-1]))

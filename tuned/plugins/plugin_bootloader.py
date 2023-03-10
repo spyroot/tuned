@@ -15,7 +15,7 @@ from time import sleep
 log = tuned.logs.get()
 
 
-class BootloaderPlugin(base.Plugin, ABC):
+class BootloaderPlugin(base.Plugin):
     """
     `bootloader`::
 
@@ -189,6 +189,14 @@ class BootloaderPlugin(base.Plugin, ABC):
     ----
     ====
     """
+
+    def _instance_unapply_dynamic(self, instance, device):
+        pass
+        pass
+
+    def _instance_update_dynamic(self, instance, device):
+        pass
+        pass
 
     def __init__(self, *args, **kwargs):
         if not os.path.isfile(consts.PHOTON_TUNED_CFG_FILE):
