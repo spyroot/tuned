@@ -484,9 +484,15 @@ class BootloaderPlugin(base.Plugin):
         s += consts.GRUB2_TEMPLATE_HEADER_END + r"\n"
         grub2_cfg = re.sub(
             r"^(\s*###\s+END\s+[^#]+/00_header\s+### *)\n", s, grub2_cfg, flags=re.MULTILINE)
-        grub2_cfg = re.sub(
-            r"(load_env -f /boot/photon.cfg)", r"\1\nload_env -f /boot/tuned.cfg", grub2_cfg)
-        d2 = {"linux": consts.GRUB2_TUNED_VAR, "initrd": consts.GRUB2_TUNED_INITRD_VAR}
+
+        if is_photon_os():
+            grub2_cfg = re.sub(
+                r"(load_env -f /boot/photon.cfg)", r"\1\nload_env -f /boot/tuned.cfg", grub2_cfg)
+
+        d2 = {
+            "linux": consts.GRUB2_TUNED_VAR,
+            "initrd": consts.GRUB2_TUNED_INITRD_VAR
+        }
 
         for i in d2:
             # add TuneD parameters to all kernels
@@ -615,9 +621,11 @@ class BootloaderPlugin(base.Plugin):
                 else:
                     data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + v, data, flags=re.MULTILINE)
 
+        print(f"Photon OS data {data}")
         return self._cmd.write_to_file(f, data)
 
     def _patch_photon_tuned_cfg(self, d):
+        print("Patching photon os")
         return self.add_modify_option_woquotes_in_file(consts.PHOTON_TUNED_CFG_FILE, d)
 
     def _grub2_update(self):
