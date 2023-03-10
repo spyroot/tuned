@@ -199,10 +199,8 @@ class BootloaderPlugin(base.Plugin):
 
     def _instance_unapply_dynamic(self, instance, device):
         pass
-        pass
 
     def _instance_update_dynamic(self, instance, device):
-        pass
         pass
 
     def __init__(self, *args, **kwargs):
@@ -230,8 +228,8 @@ class BootloaderPlugin(base.Plugin):
         self._cmdline_val = ""
         self._initrd_val = ""
         self._grub2_cfg_file_names = BootloaderPlugin._get_grub2_cfg_files()
+        log.info(f"Grub file names {self._grub2_cfg_file_names}")
         self._bls = self._bls_enabled()
-
         self._rpm_ostree = self._rpm_ostree_status() is not None
 
     def _instance_cleanup(self, instance):
@@ -624,7 +622,7 @@ class BootloaderPlugin(base.Plugin):
                 else:
                     data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + v, data, flags=re.MULTILINE)
 
-        log.info(f"Saving photon os grub data: {data} to {f}")
+        log.info(f"Saving photon os {f} grub data: {data}")
         return self._cmd.write_to_file(f, data)
 
     def _patch_photon_tuned_cfg(self, d):
