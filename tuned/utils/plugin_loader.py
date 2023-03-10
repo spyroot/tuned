@@ -42,10 +42,11 @@ class PluginLoader(object):
 
 		for name in module.__dict__:
 			cls = getattr(module, name)
+			print(f"Loading {name}")
 			if type(cls) is type and issubclass(cls, self._interface):
 				return cls
 
-		raise ImportError(f"Cannot find the plugin class. {module.__dict__}")
+		raise ImportError(f"Cannot find the plugin class. {module_name}")
 
 	def load_all_plugins(self):
 		plugins_package = __import__(self._namespace)
