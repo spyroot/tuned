@@ -464,6 +464,8 @@ class BootloaderPlugin(base.Plugin):
 
     @staticmethod
     def _grub2_cfg_unpatch(grub2_cfg):
+        """
+        """
         log.debug("unpatching grub.cfg")
         cfg = re.sub(r"^\s*set\s+" + consts.GRUB2_TUNED_VAR + "\s*=.*\n", "", grub2_cfg, flags=re.MULTILINE)
         grub2_cfg = re.sub(r" *\$" + consts.GRUB2_TUNED_VAR, "", cfg, flags=re.MULTILINE)
@@ -608,7 +610,7 @@ class BootloaderPlugin(base.Plugin):
             }
         )
 
-    def add_modify_option_woquotes_in_file(self, f, d, add=True):
+    def add_modify_option_woquotes_in_file(self, f: str, d: dict, add=True):
         """
         """
         log.info(f"Reading grub from: {f}")
@@ -621,6 +623,7 @@ class BootloaderPlugin(base.Plugin):
                 if add:
                     if len(data) > 0 and data[-1] != "\n":
                         data += f"\n{o}={v}\n" "%s=%s\n"
+                        print(f"DATA {data}")
                 else:
                     data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + v, data, flags=re.MULTILINE)
 
