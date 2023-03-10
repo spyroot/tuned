@@ -563,11 +563,12 @@ class CPULatencyPlugin(base.Plugin):
                                   % err_msg)
                         break
                     else:
-                        log.debug("Could not set energy_perf_bias to '%s' on cpu '%s', trying another value"
-                                  % (val, device))
+                        log.debug(
+                            "Could not set energy_perf_bias to '%s' "
+                            "on cpu '%s', trying another value" % (val, device))
                 else:
-                    log.error("Failed to set energy_perf_bias on cpu '%s'. Is the value in the profile correct?"
-                              % device)
+                    log.error("Failed to set energy_perf_bias on cpu '%s'."
+                              " Is the value in the profile correct?" % device)
             return str(energy_perf_bias)
         else:
             return None
@@ -599,7 +600,7 @@ class CPULatencyPlugin(base.Plugin):
                 }.get(CPULatencyPlugin._try_parse_num(s), s)
 
     @command_get("energy_perf_bias")
-    def _get_energy_perf_bias(self, device):
+    def _get_energy_perf_bias(self, device, ignore_missing):
         energy_perf_bias = None
         if not self._is_cpu_online(device):
             log.debug("%s is not online, skipping" % device)
