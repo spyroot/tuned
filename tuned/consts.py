@@ -26,7 +26,8 @@ ERROR_THRESHOLD = 3
 
 # bootloader plugin configuration
 BOOT_DIR = "/boot"
-GRUB2_CFG_FILES = ["/boot/grub2/grub.cfg", "/etc/grub2.cfg", "/boot/efi/boot/grub2/grub.cfg"]
+GRUB2_CFG_FILES = ["/etc/grub2.cfg", "/etc/grub2-efi.cfg", "/boot/grub2/grub.cfg"]
+# GRUB2_CFG_FILES = ["/boot/grub2/grub.cfg", "/etc/grub2.cfg", "/boot/efi/boot/grub2/grub.cfg"]
 GRUB2_CFG_DIR = "/etc/grub.d"
 GRUB2_TUNED_TEMPLATE_NAME = "00_tuned"
 GRUB2_TUNED_TEMPLATE_PATH = GRUB2_CFG_DIR + "/" + GRUB2_TUNED_TEMPLATE_NAME
