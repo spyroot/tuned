@@ -613,7 +613,7 @@ class BootloaderPlugin(base.Plugin):
     def add_modify_option_woquotes_in_file(self, f: str, d: dict, add=True):
         """
         """
-        log.info(f"Reading grub from: {f} add_data {add}")
+        log.info(f"Reading grub from: {f} adding {add}")
         data = self._cmd.read_file(f)
         log.info(f"Photon OS grub data data from: {data}")
         for opt in d:
@@ -623,9 +623,18 @@ class BootloaderPlugin(base.Plugin):
                 if add:
                     if len(data) > 0 and data[-1] != "\n":
                         data += f"\n{o}={v}\n" "%s=%s\n"
-                        print(f"DATA {data}")
-                else:
-                    data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + v, data, flags=re.MULTILINE)
+            else:
+                # filter all empty intel_iommu= value
+                filtered_empty = []
+                unfiltered_values = v.split()
+                for k in unfiltered_values:
+                    if "=" in k:
+                        kv = k.split("=")
+                        if len(kv) == 2 and len(kv[1].strip()) > 0:
+                            filtered_empty.append(k)
+                without_empty = " ".join(filtered_empty)
+                data = re.sub(r"\b(" + o + r"\s*=).*$",
+                              r"\1" + without_empty, data, flags=re.MULTILINE)
 
         log.info(f"Saving photon os {f} grub data: {data}")
         return self._cmd.write_to_file(f, data)
