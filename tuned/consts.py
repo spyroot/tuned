@@ -30,8 +30,8 @@ GRUB2_CFG_FILES = ["/boot/grub2/grub.cfg", "/etc/grub2.cfg", "/boot/grub2/grub.c
 GRUB2_CFG_DIR = "/etc/grub.d"
 GRUB2_TUNED_TEMPLATE_NAME = "00_tuned"
 GRUB2_TUNED_TEMPLATE_PATH = GRUB2_CFG_DIR + "/" + GRUB2_TUNED_TEMPLATE_NAME
-GRUB2_TEMPLATE_HEADER_BEGIN = "### BEGIN /etc/grub.d/" + GRUB2_TUNED_TEMPLATE_NAME +  " ###"
-GRUB2_TEMPLATE_HEADER_END = "### END /etc/grub.d/" + GRUB2_TUNED_TEMPLATE_NAME +  " ###"
+GRUB2_TEMPLATE_HEADER_BEGIN = "### BEGIN /etc/grub.d/" + GRUB2_TUNED_TEMPLATE_NAME + " ###"
+GRUB2_TEMPLATE_HEADER_END = "### END /etc/grub.d/" + GRUB2_TUNED_TEMPLATE_NAME + " ###"
 GRUB2_TUNED_VAR = "tuned_params"
 GRUB2_TUNED_INITRD_VAR = "tuned_initrd"
 GRUB2_DEFAULT_ENV_FILE = "/etc/default/grub"
@@ -72,7 +72,7 @@ SYSFS_CPUS_PATH = "/sys/devices/system/cpu"
 
 # number of backups
 LOG_FILE_COUNT = 2
-LOG_FILE_MAXBYTES = 100*1000
+LOG_FILE_MAXBYTES = 100 * 1000
 LOG_FILE = "/var/log/tuned/tuned.log"
 PID_FILE = "/run/tuned/tuned.pid"
 SYSTEM_RELEASE_FILE = "/etc/system-release-cpe"
@@ -131,7 +131,6 @@ CFG_FUNC_LOG_FILE_COUNT = "getint"
 # default log file max size
 CFG_DEF_LOG_FILE_MAX_SIZE = 1024 * 1024
 
-
 PATH_CPU_DMA_LATENCY = "/dev/cpu_dma_latency"
 
 # profile attributes which can be specified in the main section
@@ -165,10 +164,10 @@ LOG_LEVEL_CONSOLE = 60
 LOG_LEVEL_CONSOLE_NAME = "CONSOLE"
 CAPTURE_LOG_LEVEL = "console"
 CAPTURE_LOG_LEVELS = {
-		"debug": logging.DEBUG,
-		"info": logging.INFO,
-		"warn": logging.WARN,
-		"error": logging.ERROR,
-		"console": LOG_LEVEL_CONSOLE,
-		"none": None,
-		}
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warn": logging.WARN,
+    "error": logging.ERROR,
+    "console": LOG_LEVEL_CONSOLE,
+    "none": None,
+}

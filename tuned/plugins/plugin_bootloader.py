@@ -401,6 +401,7 @@ class BootloaderPlugin(base.Plugin):
                 },
                 add=False
             )
+
         if self._initrd_dst_img_val is not None:
             log.info("removing initrd image '%s'" % self._initrd_dst_img_val)
             self._cmd.unlink(self._initrd_dst_img_val)
@@ -563,7 +564,7 @@ class BootloaderPlugin(base.Plugin):
         )
 
     def add_modify_option_woquotes_in_file(self, f, d, add=True):
-        data = self.read_file(f)
+        data = self._cmd.read_file(f)
         for opt in d:
             o = str(opt)
             v = str(d[opt])
