@@ -627,17 +627,17 @@ class BootloaderPlugin(base.Plugin):
                         data += f"\n{o}={v}\n" "%s=%s\n"
             else:
                 # filter all empty intel_iommu= value
-                filtered_empty = []
-                unfiltered_values = v.split()
-                for k in unfiltered_values:
-                    if "=" in k:
-                        kv = k.split("=")
-                        if len(kv) == 2 and len(kv[1].strip()) > 0:
-                            filtered_empty.append(k)
-                without_empty = " ".join(filtered_empty)
-                log.info(f"filtered {without_empty} original {v}")
+                # filtered_empty = []
+                # unfiltered_values = v.split()
+                # for k in unfiltered_values:
+                #     if "=" in k:
+                #         kv = k.split("=")
+                #         if len(kv) == 2 and len(kv[1].strip()) > 0:
+                #             filtered_empty.append(k)
+                # without_empty = " ".join(filtered_empty)
+                log.info(f"original key {o} original val {v}")
                 data = re.sub(r"\b(" + o + r"\s*=).*$",
-                              r"\1" + without_empty, data, flags=re.MULTILINE)
+                              r"\1" + v, data, flags=re.MULTILINE)
 
         log.info(f"Saving photon os {f} grub data: {data}")
         return self._cmd.write_to_file(f, data)
