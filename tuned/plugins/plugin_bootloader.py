@@ -1,4 +1,4 @@
-from abc import ABC
+from typing import Optional
 
 from . import base
 from .decorators import *
@@ -15,12 +15,19 @@ from time import sleep
 log = tuned.logs.get()
 
 
+def is_photon_os(default_file_name: Optional[str] = "/etc/os-release") -> bool:
+    with open(default_file_name) as f:
+        if 'Photon' in f.read():
+            return True
+    return False
+
+
 class BootloaderPlugin(base.Plugin):
     """
     `bootloader`::
 
-    Adds options to the kernel command line. This plug-in supports the
-    GRUB 2 boot loader and the Boot Loader Specification (BLS).
+    Add options to the kernel command line. This plug-in supports the
+    GRUB 2 bootloader and the Boot Loader Specification (BLS).
     +
     NOTE: *TuneD* will not remove or replace kernel command line
     parameters added via other methods like *grubby*. *TuneD* will manage
@@ -199,8 +206,15 @@ class BootloaderPlugin(base.Plugin):
         pass
 
     def __init__(self, *args, **kwargs):
-        if not os.path.isfile(consts.PHOTON_TUNED_CFG_FILE):
-            raise exceptions.NotSupportedPluginException("Required GRUB2 template not found, disabling plugin.")
+        if is_photon_os:
+            if not os.path.isfile(consts.PHOTON_TUNED_CFG_FILE):
+                raise exceptions.NotSupportedPluginException(
+                    "Required GRUB2 template not found, disabling plugin.")
+        else:
+            if not os.path.isfile(consts.GRUB2_TUNED_TEMPLATE_PATH):
+                raise exceptions.NotSupportedPluginException(
+                    "Required GRUB2 template not found, disabling plugin.")
+
         super(BootloaderPlugin, self).__init__(*args, **kwargs)
         self._cmd = commands()
 
@@ -214,7 +228,7 @@ class BootloaderPlugin(base.Plugin):
         self._initrd_dst_img_val = None
         self._cmdline_val = ""
         self._initrd_val = ""
-        self._grub2_cfg_file_names = self._get_grub2_cfg_files()
+        self._grub2_cfg_file_names = BootloaderPlugin._get_grub2_cfg_files()
         self._bls = self._bls_enabled()
 
         self._rpm_ostree = self._rpm_ostree_status() is not None
@@ -245,7 +259,9 @@ class BootloaderPlugin(base.Plugin):
         for o in options.split():
             if o not in omit:
                 arr = o.split('=', 1)
-                d.setdefault(arr[0], []).append(arr[1] if len(arr) > 1 else None)
+                d.setdefault(arr[0], []).append(
+                    arr[1] if len(arr) > 1 else None
+                )
         return d
 
     @staticmethod
@@ -285,6 +301,7 @@ class BootloaderPlugin(base.Plugin):
         """
         if delete is None:
             delete = {}
+
         if append is None:
             append = {}
 
@@ -322,9 +339,11 @@ class BootloaderPlugin(base.Plugin):
             appended[k] = val
 
         log.info("rpm-ostree kargs - appending: '%s'; deleting: '%s'" % (append_params, delete_params))
-        (rc, _, err) = self._cmd.execute(['rpm-ostree', 'kargs'] +
-                                         ['--append=%s' % v for v in append_params] +
-                                         ['--delete=%s' % v for v in delete_params], return_err=True)
+        (rc, _, err) = self._cmd.execute(
+            ['rpm-ostree', 'kargs'] +
+            ['--append=%s' % v for v in append_params] +
+            ['--delete=%s' % v for v in delete_params],
+            return_err=True)
         if rc != 0:
             log.error("Something went wrong with rpm-ostree kargs\n%s" % err)
             return self._options_to_dict(out), None, None
@@ -364,7 +383,8 @@ class BootloaderPlugin(base.Plugin):
             effective["cmdline"] = cmdline
         return effective
 
-    def _get_grub2_cfg_files(self):
+    @staticmethod
+    def _get_grub2_cfg_files():
         cfg_files = []
         for f in consts.GRUB2_CFG_FILES:
             if os.path.exists(f):
@@ -387,8 +407,21 @@ class BootloaderPlugin(base.Plugin):
         return self._cmd.add_modify_option_in_file(consts.BOOT_CMDLINE_FILE, d)
 
     def _remove_grub2_tuning(self):
-        self._patch_bootcmdline({consts.BOOT_CMDLINE_TUNED_VAR: "", consts.BOOT_CMDLINE_INITRD_ADD_VAR: ""})
-        self._patch_photon_tuned_cfg({consts.GRUB2_TUNED_VAR: "", consts.GRUB2_TUNED_INITRD_VAR: ""})
+        """Remove grub config from boot
+        """
+        self._patch_bootcmdline(
+            {
+                consts.BOOT_CMDLINE_TUNED_VAR: "",
+                consts.BOOT_CMDLINE_INITRD_ADD_VAR: ""}
+        )
+        if is_photon_os():
+            self._patch_photon_tuned_cfg(
+                {
+                    consts.GRUB2_TUNED_VAR: "",
+                    consts.GRUB2_TUNED_INITRD_VAR: ""
+                }
+            )
+
         if not self._grub2_cfg_file_names:
             log.info("cannot find grub.cfg to patch")
             return
@@ -429,13 +462,16 @@ class BootloaderPlugin(base.Plugin):
                 self._remove_grub2_tuning()
                 self._update_grubenv({"tuned_params": "", "tuned_initrd": ""})
 
-    def _grub2_cfg_unpatch(self, grub2_cfg):
+    @staticmethod
+    def _grub2_cfg_unpatch(grub2_cfg):
         log.debug("unpatching grub.cfg")
         cfg = re.sub(r"^\s*set\s+" + consts.GRUB2_TUNED_VAR + "\s*=.*\n", "", grub2_cfg, flags=re.MULTILINE)
         grub2_cfg = re.sub(r" *\$" + consts.GRUB2_TUNED_VAR, "", cfg, flags=re.MULTILINE)
         cfg = re.sub(r"^\s*set\s+" + consts.GRUB2_TUNED_INITRD_VAR + "\s*=.*\n", "", grub2_cfg, flags=re.MULTILINE)
         grub2_cfg = re.sub(r" *\$" + consts.GRUB2_TUNED_INITRD_VAR, "", cfg, flags=re.MULTILINE)
-        grub2_cfg = re.sub(r'(?m).*tuned.cfg\n?', '', grub2_cfg)
+        if is_photon_os():
+            grub2_cfg = re.sub(r'(?m).*tuned.cfg\n?', '', grub2_cfg)
+
         cfg = re.sub(consts.GRUB2_TEMPLATE_HEADER_BEGIN + r"\n", "", grub2_cfg, flags=re.MULTILINE)
         return re.sub(consts.GRUB2_TEMPLATE_HEADER_END + r"\n+", "", cfg, flags=re.MULTILINE)
 
@@ -558,12 +594,15 @@ class BootloaderPlugin(base.Plugin):
         if d is None:
             return
         self._patch_bootcmdline(
-            {consts.BOOT_CMDLINE_TUNED_VAR: self._cmdline_val,
-             consts.BOOT_CMDLINE_KARGS_DELETED_VAR: self._dict_to_options(d)
-             }
+            {
+                consts.BOOT_CMDLINE_TUNED_VAR: self._cmdline_val,
+                consts.BOOT_CMDLINE_KARGS_DELETED_VAR: self._dict_to_options(d)
+            }
         )
 
     def add_modify_option_woquotes_in_file(self, f, d, add=True):
+        """
+        """
         data = self._cmd.read_file(f)
         for opt in d:
             o = str(opt)
@@ -571,10 +610,9 @@ class BootloaderPlugin(base.Plugin):
             if re.search(r"\b" + o + r"\s*=.*$", data, flags=re.MULTILINE) is None:
                 if add:
                     if len(data) > 0 and data[-1] != "\n":
-                        data += "\n"
-                        data += "%s=%s\n" % (o, v)
-                    else:
-                        data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + v, data, flags=re.MULTILINE)
+                        data += f"\n{o}={v}\n" "%s=%s\n"
+                else:
+                    data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + v, data, flags=re.MULTILINE)
 
         return self._cmd.write_to_file(f, data)
 
@@ -582,12 +620,28 @@ class BootloaderPlugin(base.Plugin):
         return self.add_modify_option_woquotes_in_file(consts.PHOTON_TUNED_CFG_FILE, d)
 
     def _grub2_update(self):
+        """Update grub cfg
+        """
         self._grub2_cfg_patch(
-            {consts.GRUB2_TUNED_VAR: self._cmdline_val, consts.GRUB2_TUNED_INITRD_VAR: self._initrd_val})
-        self._patch_photon_tuned_cfg(
-            {consts.GRUB2_TUNED_VAR: self._cmdline_val, consts.GRUB2_TUNED_INITRD_VAR: self._initrd_val})
+            {
+                consts.GRUB2_TUNED_VAR: self._cmdline_val,
+                consts.GRUB2_TUNED_INITRD_VAR: self._initrd_val
+            }
+        )
+        if is_photon_os():
+            # patch photon os tuned cfg
+            self._patch_photon_tuned_cfg(
+                {
+                    consts.GRUB2_TUNED_VAR: self._cmdline_val,
+                    consts.GRUB2_TUNED_INITRD_VAR: self._initrd_val
+                }
+            )
         self._patch_bootcmdline(
-            {consts.BOOT_CMDLINE_TUNED_VAR: self._cmdline_val, consts.BOOT_CMDLINE_INITRD_ADD_VAR: self._initrd_val})
+            {
+                consts.BOOT_CMDLINE_TUNED_VAR: self._cmdline_val,
+                consts.BOOT_CMDLINE_INITRD_ADD_VAR: self._initrd_val
+            }
+        )
 
     def _has_bls(self):
         return os.path.exists(consts.BLS_ENTRIES_PATH)
@@ -603,11 +657,22 @@ class BootloaderPlugin(base.Plugin):
 
     def _bls_entries_patch_initial(self):
         machine_id = self._cmd.get_machine_id()
+
         if machine_id == "":
             return False
-        log.debug("running kernel update hook '%s' to patch BLS entries" % consts.KERNEL_UPDATE_HOOK_FILE)
-        (rc, out) = self._cmd.execute([consts.KERNEL_UPDATE_HOOK_FILE, "add"],
-                                      env={"KERNEL_INSTALL_MACHINE_ID": machine_id})
+
+        log.debug(
+            "running kernel update hook '%s' "
+            "to patch BLS entries" % consts.KERNEL_UPDATE_HOOK_FILE
+        )
+        (rc, out) = self._cmd.execute(
+            [
+                consts.KERNEL_UPDATE_HOOK_FILE, "add"
+            ],
+            env={
+                "KERNEL_INSTALL_MACHINE_ID": machine_id
+            }
+        )
         if rc != 0:
             log.warn("cannot patch BLS entries: '%s'" % out)
             return False
@@ -615,9 +680,12 @@ class BootloaderPlugin(base.Plugin):
 
     def _bls_update(self):
         log.debug("updating BLS")
-        if self._has_bls() and \
-                self._update_grubenv({"tuned_params": self._cmdline_val, "tuned_initrd": self._initrd_val}) and \
-                self._bls_entries_patch_initial():
+        if self._has_bls() and self._update_grubenv(
+                {
+                    "tuned_params": self._cmdline_val,
+                    "tuned_initrd": self._initrd_val
+                }
+        ) and self._bls_entries_patch_initial():
             return True
         return False
 
@@ -634,7 +702,9 @@ class BootloaderPlugin(base.Plugin):
             return False
         if self._check_petitboot():
             log.warn(
-                "Detected Petitboot which doesn't support initrd overlays. The initrd overlay will be ignored by bootloader.")
+                "Detected Petitboot which doesn't support initrd overlays. "
+                "The initrd overlay will be ignored by bootloader."
+            )
         log.info("installing initrd image as '%s'" % self._initrd_dst_img_val)
         img_name = os.path.basename(self._initrd_dst_img_val)
         if not self._cmd.copy(img, self._initrd_dst_img_val):
