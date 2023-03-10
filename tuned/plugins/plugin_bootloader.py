@@ -207,6 +207,7 @@ class BootloaderPlugin(base.Plugin):
 
     def __init__(self, *args, **kwargs):
         if is_photon_os:
+            log.info(f"Detected photon os using {consts.PHOTON_TUNED_CFG_FILE}")
             if not os.path.isfile(consts.PHOTON_TUNED_CFG_FILE):
                 raise exceptions.NotSupportedPluginException(
                     "Required GRUB2 template not found, disabling plugin.")
@@ -621,11 +622,11 @@ class BootloaderPlugin(base.Plugin):
                 else:
                     data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + v, data, flags=re.MULTILINE)
 
-        print(f"Photon OS data {data}")
+        log.info(f"Saving photon os grub data: {data}")
         return self._cmd.write_to_file(f, data)
 
     def _patch_photon_tuned_cfg(self, d):
-        print("Patching photon os")
+        log.info(f"Updating photon os grub {d}")
         return self.add_modify_option_woquotes_in_file(consts.PHOTON_TUNED_CFG_FILE, d)
 
     def _grub2_update(self):
@@ -639,12 +640,11 @@ class BootloaderPlugin(base.Plugin):
         )
         if is_photon_os():
             # patch photon os tuned cfg
-            self._patch_photon_tuned_cfg(
-                {
-                    consts.GRUB2_TUNED_VAR: self._cmdline_val,
-                    consts.GRUB2_TUNED_INITRD_VAR: self._initrd_val
-                }
-            )
+            grub_new_data = {
+                consts.GRUB2_TUNED_VAR: self._cmdline_val,
+                consts.GRUB2_TUNED_INITRD_VAR: self._initrd_val
+            }
+            self._patch_photon_tuned_cfg(grub_new_data)
         self._patch_bootcmdline(
             {
                 consts.BOOT_CMDLINE_TUNED_VAR: self._cmdline_val,
