@@ -65,7 +65,7 @@ class Plugin(base.Plugin, ABC):
                 self._removed_device_unapply_tuning(instance, device_name)
                 self._call_device_script(instance, instance.script_pre, "unapply", [device_name])
                 instance.processed_devices.remove(device_name)
-                # This can be a bit racy (we can overcount),
+                # This can be a bit racy (we can over-count),
                 # but it shouldn't affect the boolean result
                 instance.active = len(instance.processed_devices) \
                                   + len(instance.assigned_devices) > 0

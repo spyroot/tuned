@@ -143,7 +143,7 @@ class BootloaderPlugin(base.Plugin):
 
     It will result in the empty kernel command line because the merge
     executes and the [option]`cmdline_profile_1` gets redefined to just
-    [option]`-quiet`. Thus there is nothing to remove in the final kernel
+    [option]`-quiet`. Thus, there is nothing to remove in the final kernel
     command line processing.
     ====
     +
@@ -166,7 +166,7 @@ class BootloaderPlugin(base.Plugin):
     +
     The [option]`initrd_remove_dir=VALUE` removes the source directory
     from which the initrd image was built if `VALUE` is true. Only 'y',
-    'yes', 't', 'true' and '1' (case insensitive) are accepted as true
+    'yes', 't', 'true' and '1' (case-insensitive) are accepted as true
     values for this option. Other values are interpreted as false.
     +
     .Adding an overlay initrd image
@@ -178,13 +178,13 @@ class BootloaderPlugin(base.Plugin):
     ----
 
     This creates an initrd image from the `/tmp/tuned-initrd.img` directory
-    and and then removes the `tuned-initrd.img` directory from `/tmp`.
+    and then removes the `tuned-initrd.img` directory from `/tmp`.
     ====
     +
     The [option]`skip_grub_config=VALUE` does not change grub
     configuration if `VALUE` is true. However, [option]`cmdline`
     options are still processed, and the result is used to verify the current
-    cmdline. Only 'y', 'yes', 't', 'true' and '1' (case insensitive) are accepted
+    cmdline. Only 'y', 'yes', 't', 'true' and '1' (case-insensitive) are accepted
     as true values for this option. Other values are interpreted as false.
     +
     .Do not change grub configuration
@@ -669,7 +669,8 @@ class BootloaderPlugin(base.Plugin):
             }
         )
 
-    def _has_bls(self):
+    @staticmethod
+    def _has_bls():
         return os.path.exists(consts.BLS_ENTRIES_PATH)
 
     def _update_grubenv(self, d):
@@ -706,7 +707,7 @@ class BootloaderPlugin(base.Plugin):
 
     def _bls_update(self):
         log.debug("updating BLS")
-        if self._has_bls() and self._update_grubenv(
+        if BootloaderPlugin._has_bls() and self._update_grubenv(
                 {
                     "tuned_params": self._cmdline_val,
                     "tuned_initrd": self._initrd_val
@@ -748,7 +749,7 @@ class BootloaderPlugin(base.Plugin):
         return True
 
     @command_custom("grub2_cfg_file")
-    def _grub2_cfg_file(self, enabling, value, verify, ignore_missing):
+    def _grub2_cfg_file(self, enabling, value, verify):
         # nothing to verify
         if verify:
             return None
@@ -756,7 +757,7 @@ class BootloaderPlugin(base.Plugin):
             self._grub2_cfg_file_names = [str(value)]
 
     @command_custom("initrd_dst_img")
-    def _initrd_dst_img(self, enabling, value, verify, ignore_missing):
+    def _initrd_dst_img(self, enabling, value, verify):
         # nothing to verify
         if verify:
             return None
@@ -768,7 +769,7 @@ class BootloaderPlugin(base.Plugin):
                 self._initrd_dst_img_val = os.path.join(consts.BOOT_DIR, self._initrd_dst_img_val)
 
     @command_custom("initrd_remove_dir")
-    def _initrd_remove_dir(self, enabling, value, verify, ignore_missing):
+    def _initrd_remove_dir(self, enabling, value, verify):
         # nothing to verify
         if verify:
             return None
@@ -776,7 +777,7 @@ class BootloaderPlugin(base.Plugin):
             self._initrd_remove_dir = self._cmd.get_bool(value) == "1"
 
     @command_custom("initrd_add_img", per_device=False, priority=10)
-    def _initrd_add_img(self, enabling, value, verify, ignore_missing):
+    def _initrd_add_img(self, enabling, value, verify):
         # nothing to verify
         if verify:
             return None
@@ -789,7 +790,7 @@ class BootloaderPlugin(base.Plugin):
                 return False
 
     @command_custom("initrd_add_dir", per_device=False, priority=10)
-    def _initrd_add_dir(self, enabling, value, verify, ignore_missing):
+    def _initrd_add_dir(self, enabling, value, verify):
         # nothing to verify
         if verify:
             return None
@@ -819,7 +820,7 @@ class BootloaderPlugin(base.Plugin):
                 self._cmd.rmtree(src_dir)
 
     @command_custom("cmdline", per_device=False, priority=10)
-    def _cmdline(self, enabling, value, verify, ignore_missing):
+    def _cmdline(self, enabling, value, verify):
         v = self._variables.expand(self._cmd.unquote(value))
         if verify:
             if self._rpm_ostree:
@@ -852,7 +853,7 @@ class BootloaderPlugin(base.Plugin):
             self._cmdline_val = v
 
     @command_custom("skip_grub_config", per_device=False, priority=10)
-    def _skip_grub_config(self, enabling, value, verify, ignore_missing):
+    def _skip_grub_config(self, enabling, value, verify):
         if verify:
             return None
         if enabling and value is not None:

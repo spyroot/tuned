@@ -1,5 +1,6 @@
 __all__ = ["command_set", "command_get", "command_custom"]
 
+
 #	@command_set("scheduler", per_device=True)
 #	def set_scheduler(self, value, device):
 #		set_new_scheduler
@@ -18,33 +19,37 @@ __all__ = ["command_set", "command_get", "command_custom"]
 #
 
 def command_set(name, per_device=False, priority=0):
-	def wrapper(method):
-		method._command = {
-			"set": True,
-			"name": name,
-			"per_device": per_device,
-			"priority": priority,
-		}
-		return method
+    def wrapper(method):
+        method._command = {
+            "set": True,
+            "name": name,
+            "per_device": per_device,
+            "priority": priority,
+        }
+        return method
 
-	return wrapper
+    return wrapper
+
 
 def command_get(name):
-	def wrapper(method):
-		method._command = {
-			"get": True,
-			"name": name,
-		}
-		return method
-	return wrapper
+    def wrapper(method):
+        method._command = {
+            "get": True,
+            "name": name,
+        }
+        return method
+
+    return wrapper
+
 
 def command_custom(name, per_device=False, priority=0):
-	def wrapper(method):
-		method._command = {
-			"custom": True,
-			"name": name,
-			"per_device": per_device,
-			"priority": priority,
-		}
-		return method
-	return wrapper
+    def wrapper(method):
+        method._command = {
+            "custom": True,
+            "name": name,
+            "per_device": per_device,
+            "priority": priority,
+        }
+        return method
+
+    return wrapper

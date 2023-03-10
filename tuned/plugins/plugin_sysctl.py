@@ -1,12 +1,10 @@
-import re
-from . import base
-from .decorators import *
-import tuned.logs
-from subprocess import *
-from tuned.utils.commands import commands
-import tuned.consts as consts
 import errno
 import os
+
+import tuned.consts as consts
+import tuned.logs
+from tuned.utils.commands import commands
+from . import base
 
 log = tuned.logs.get()
 
@@ -17,28 +15,34 @@ SYSCTL_CONFIG_DIRS = ["/run/sysctl.d",
 
 class SysctlPlugin(base.Plugin):
     """
-	`sysctl`::
-	
-	Sets various kernel parameters at runtime.
-	+
-	This plug-in is used for applying custom `sysctl` settings and should
-	only be used to change system settings that are not covered by other
-	*TuneD* plug-ins. If the settings are covered by other *TuneD* plug-ins,
-	use those plug-ins instead.
-	+
-	The syntax for this plug-in is
-	`_key_=_value_`, where
-	`_key_` is the same as the key name provided by the
-	`sysctl` utility.
-	+
-	.Adjusting the kernel runtime kernel.sched_min_granularity_ns value
-	====
-	----
-	[sysctl]
-	kernel.sched_min_granularity_ns=3000000
-	----
-	====
-	"""
+    `sysctl`::
+
+    Sets various kernel parameters at runtime.
+    +
+    This plug-in is used for applying custom `sysctl` settings and should
+    only be used to change system settings that are not covered by other
+    *TuneD* plug-ins. If the settings are covered by other *TuneD* plug-ins,
+    use those plug-ins instead.
+    +
+    The syntax for this plug-in is
+    `_key_=_value_`, where
+    `_key_` is the same as the key name provided by the
+    `sysctl` utility.
+    +
+    .Adjusting the kernel runtime kernel.sched_min_granularity_ns value
+    ====
+    ----
+    [sysctl]
+    kernel.sched_min_granularity_ns=3000000
+    ----
+    ====
+    """
+
+    def _instance_unapply_dynamic(self, instance, device):
+        pass
+
+    def _instance_update_dynamic(self, instance, device):
+        pass
 
     def __init__(self, *args, **kwargs):
         super(SysctlPlugin, self).__init__(*args, **kwargs)
@@ -95,8 +99,8 @@ class SysctlPlugin(base.Plugin):
             curr_val = _read_sysctl(option)
             value = self._process_assignment_modifiers(self._variables.expand(value), curr_val)
             if value is not None:
-                if self._verify_value(option, self._cmd.remove_ws(value), self._cmd.remove_ws(curr_val),
-                                      ignore_missing) == False:
+                if not self._verify_value(option, self._cmd.remove_ws(value), self._cmd.remove_ws(curr_val),
+                                          ignore_missing):
                     ret = False
         return ret
 

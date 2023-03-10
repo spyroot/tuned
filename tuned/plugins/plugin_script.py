@@ -59,7 +59,7 @@ class ScriptPlugin(base.Plugin):
         pass
 
     @classmethod
-    def _get_config_options(self):
+    def _get_config_options(cls):
         return {
             "script": None,
         }

@@ -6,7 +6,6 @@ from . import base
 from .decorators import *
 import tuned.logs
 import re
-from subprocess import *
 import threading
 import perf
 import select
@@ -229,7 +228,7 @@ class SchedulerPlugin(base.Plugin):
     +
     To prevent processes/threads/IRQs from using certain CPUs, use
     the [option]`isolated_cores` option. It changes process/thread
-    affinities, IRQs affinities and it sets `default_smp_affinity`
+    affinities, IRQs affinities, and it sets `default_smp_affinity`
     for IRQs. The CPU affinity mask is adjusted for all processes and
     threads matching [option]`ps_whitelist` option subject to success
     of the `sched_setaffinity()` system call. The default setting of
@@ -525,6 +524,7 @@ class SchedulerPlugin(base.Plugin):
                  global_cfg, variables):
         super(SchedulerPlugin, self).__init__(monitor_repository, storage_factory, hardware_inventory, device_matcher,
                                               device_matcher_udev, plugin_instance_factory, global_cfg, variables)
+        self._runtime_tuning = False
         self._has_dynamic_options = True
         self._daemon = consts.CFG_DEF_DAEMON
         self._sleep_interval = int(consts.CFG_DEF_SLEEP_INTERVAL)
@@ -562,6 +562,10 @@ class SchedulerPlugin(base.Plugin):
             return 0
         # round up to the nearest power of two value
         return int(2 ** math.ceil(math.log(mp, 2)))
+
+    @property
+    def runtime_tuning(self):
+        return self._runtime_tuning
 
     def _instance_init(self, instance):
         instance._has_dynamic_tuning = False
@@ -606,9 +610,9 @@ class SchedulerPlugin(base.Plugin):
         for k in instance._scheduler:
             instance._scheduler[k] = self._variables.expand(instance._scheduler[k])
         if self._cmd.get_bool(instance._scheduler.get("runtime", 1)) == "0":
-            instance._runtime_tuning = False
+            instance.runtime_tuning = False
         instance._terminate = threading.Event()
-        if self._daemon and instance._runtime_tuning:
+        if self._daemon and instance.runtime_tuning:
             try:
                 instance._threads = perf.thread_map()
                 evsel = perf.evsel(type=perf.TYPE_SOFTWARE,
@@ -625,7 +629,7 @@ class SchedulerPlugin(base.Plugin):
                     instance._evlist.mmap(pages=perf_mmap_pages)
             # no perf
             except:
-                instance._runtime_tuning = False
+                instance.runtime_tuning = False
 
     def _instance_cleanup(self, instance):
         pass
@@ -704,7 +708,7 @@ class SchedulerPlugin(base.Plugin):
         priority = self._scheduler_utils.get_priority(pid)
         log.debug("Read scheduler policy '%s' and priority '%d' of PID '%d'"
                   % (sched_str, priority, pid))
-        return (scheduler, priority)
+        return scheduler, priority
 
     def _set_rt(self, pid, sched, prio):
         sched_str = self._scheduler_utils.sched_num_to_const(sched)
@@ -720,17 +724,15 @@ class SchedulerPlugin(base.Plugin):
         # Workaround for old (pre-0.4) python-schedutils which raised
         # SystemError instead of OSError
         except (SystemError, OSError) as e:
-            log.error("Failed to get allowed priority range: %s"
-                      % e)
+            log.error("Failed to get allowed priority range: %s" % e)
         try:
             self._scheduler_utils.set_scheduler(pid, sched, prio)
         except (SystemError, OSError) as e:
             if hasattr(e, "errno") and e.errno == errno.ESRCH:
-                log.debug("Failed to set scheduling parameters of PID %d, the task vanished."
-                          % pid)
+                log.debug("Failed to set scheduling parameters of PID %d, "
+                          "the task vanished." % pid)
             else:
-                log.error("Failed to set scheduling parameters of PID %d: %s"
-                          % (pid, e))
+                log.error("Failed to set scheduling parameters of PID %d: %s" % (pid, e))
 
     # process is a procfs.process object
     # Raises OSError, IOError
@@ -750,15 +752,15 @@ class SchedulerPlugin(base.Plugin):
             if process["stat"].is_bound_to_cpu():
                 if process["stat"]["state"] == "Z":
                     log.debug(
-                        "Affinity of zombie task with PID %d cannot be changed, the task's affinity mask is fixed."
-                        % pid)
+                        "Affinity of zombie task with PID %d "
+                        "cannot be changed, the task's affinity mask is fixed." % pid)
                 elif SchedulerPlugin._is_kthread(process):
                     log.debug(
-                        "Affinity of kernel thread with PID %d cannot be changed, the task's affinity mask is fixed."
-                        % pid)
+                        "Affinity of kernel thread with PID %d "
+                        "cannot be changed, the task's affinity mask is fixed." % pid)
                 else:
-                    log.warn("Affinity of task with PID %d cannot be changed, the task's affinity mask is fixed."
-                             % pid)
+                    log.warn("Affinity of task with PID %d "
+                             "cannot be changed, the task's affinity mask is fixed." % pid)
                 return 0
             else:
                 return 1
@@ -1056,7 +1058,7 @@ class SchedulerPlugin(base.Plugin):
                 in sched_cfg:
             try:
                 r = re.compile(regex)
-            except re.error as e:
+            except re.error as _:
                 log.error("error compiling regular expression: '%s'" % str(regex))
                 continue
             processes = [(pid, cmd) for pid, cmd in ps.items() if re.search(r, cmd) is not None]
@@ -1074,7 +1076,7 @@ class SchedulerPlugin(base.Plugin):
                                priority, affinity)
         self._storage.set(self._scheduler_storage_key,
                           self._scheduler_original)
-        if self._daemon and instance._runtime_tuning:
+        if self._daemon and instance.runtime_tuning:
             instance._thread = threading.Thread(target=self._thread_code, args=[instance])
             instance._thread.start()
 
@@ -1123,7 +1125,7 @@ class SchedulerPlugin(base.Plugin):
 
     def _instance_unapply_static(self, instance, full_rollback=False):
         super(SchedulerPlugin, self)._instance_unapply_static(instance, full_rollback)
-        if self._daemon and instance._runtime_tuning:
+        if self._daemon and instance.runtime_tuning:
             instance._terminate.set()
             instance._thread.join()
         self._restore_ps_affinity()

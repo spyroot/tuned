@@ -17,133 +17,133 @@ cpuidle_states_path = "/sys/devices/system/cpu/cpu0/cpuidle"
 
 class CPULatencyPlugin(base.Plugin):
     """
-	`cpu`::
-	
-	Sets the CPU governor to the value specified by the [option]`governor`
-	option and dynamically changes the Power Management Quality of
-	Service (PM QoS) CPU Direct Memory Access (DMA) latency according
-	to the CPU load.
-	
-	`governor`:::
-	The [option]`governor` option of the 'cpu' plug-in supports specifying
-	CPU governors. Multiple governors are separated using '|'. The '|'
-	character is meant to represent a logical 'or' operator. Note that the
-	same syntax is used for the [option]`energy_perf_bias` option. *TuneD*
-	will set the first governor that is available on the system.
-	+    
-	For example, with the following profile, *TuneD* will set the 'ondemand'
-	governor, if it is available. If it is not available, but the 'powersave'
-	governor is available, 'powersave' will be set. If neither of them are
-	available, the governor will not be changed.
-	+
-	.Specifying a CPU governor
-	====
-	----
-	[cpu]
-	governor=ondemand|powersave
-	----
-	====
-	
-	`sampling_down_factor`:::
-	The sampling rate determines how frequently the governor checks
-	to tune the CPU. The [option]`sampling_down_factor` is a tunable
-	that multiplies the sampling rate when the CPU is at its highest
-	clock frequency thereby delaying load evaluation and improving
-	performance. Allowed values for sampling_down_factor are 1 to 100000.
-	+
-	.The recommended setting for jitter reduction
-	====
-	----
-	[cpu]
-	sampling_down_factor = 100
-	----
-	====
-	
-	`energy_perf_bias`:::
-	[option]`energy_perf_bias` supports managing energy
-	vs. performance policy via x86 Model Specific Registers using the
-	`x86_energy_perf_policy` tool. Multiple alternative Energy Performance
-	Bias (EPB) values are supported. The alternative values are separated
-	using the '|' character. The following EPB values are supported
-	starting with kernel 4.13: "performance", "balance-performance",
-	"normal", "balance-power" and "power".
-	+
-	.Specifying alternative Energy Performance Bias values
-	====
-	----
-	[cpu]
-	energy_perf_bias=powersave|power
-	----
-	
-	*TuneD* will try to set EPB to 'powersave'. If that fails, it will
-	try to set it to 'power'.
-	====
-	
-	`latency_low, latency_high, load_threshold`:::
-	+
-	If the CPU load is lower than the value specified by
-	the[option]`load_threshold` option, the latency is set to the value
-	specified either by the [option]`latency_high` option or by the
-	[option]`latency_low` option.
-	+
-	`force_latency`:::
-	You can also force the latency to a specific value and prevent it from
-	dynamically changing further. To do so, set the [option]`force_latency`
-	option to the required latency value.
-	+
-	The maximum latency value can be specified in several ways:
-	+
-	 * by a numerical value in microseconds (for example, `force_latency=10`)
-	 * as the kernel CPU idle level ID of the maximum C-state allowed
-	   (for example, force_latency = cstate.id:1)
-	 * as a case sensitive name of the maximum C-state allowed
-	   (for example, force_latency = cstate.name:C1)
-	 * by using 'None' as a fallback value to prevent errors when alternative
-	   C-state IDs/names do not exist. When 'None' is used in the alternatives
-	   pipeline, all the alternatives that follow 'None' are ignored.
-	+
-	It is also possible to specify multiple fallback values separated by '|' as
-	the C-state names and/or IDs may not be available on some systems.
-	+
-	.Specifying fallback C-state values
-	====
-	----
-	[cpu]
-	force_latency=cstate.name:C6|cstate.id:4|10
-	----
-	This configuration tries to obtain and set the latency of C-state named C6.
-	If the C-state C6 does not exist, kernel CPU idle level ID 4 (state4) latency
-	is searched for in sysfs. Finally, if the state4 directory in sysfs is not found,
-	the last latency fallback value is `10` us. The value is encoded and written into
-	the kernel's PM QoS file `/dev/cpu_dma_latency`.
-	====
-	+
-	.Specifying fallback C-state values using 'None'.
-	====
-	----
-	[cpu]
-	force_latency=cstate.name:XYZ|None
-	----
-	In this case, if C-state with the name `XYZ` does not exist
-	[option]`force_latency`, no latency value will be written into the
-	kernel's PM QoS file, and no errors will be reported due to the
-	presence of 'None'.
-	====
-	
-	`min_perf_pct, max_perf_pct, no_turbo`:::
-	These options set the internals of the Intel P-State driver exposed via the kernel's
-	`sysfs` interface.
-	+
-	.Adjusting the configuration of the Intel P-State driver
-	====
-	----
-	[cpu]
-	min_perf_pct=100
-	----
-	Limit the minimum P-State that will be requested by the driver. It states
-	it as a percentage of the max (non-turbo) performance level.
-	====
-	"""
+    `cpu`::
+
+    Sets the CPU governor to the value specified by the [option]`governor`
+    option and dynamically changes the Power Management Quality of
+    Service (PM QoS) CPU Direct Memory Access (DMA) latency according
+    to the CPU load.
+
+    `governor`:::
+    The [option]`governor` option of the 'cpu' plug-in supports specifying
+    CPU governors. Multiple governors are separated using '|'. The '|'
+    character is meant to represent a logical 'or' operator. Note that the
+    same syntax is used for the [option]`energy_perf_bias` option. *TuneD*
+    will set the first governor that is available on the system.
+    +
+    For example, with the following profile, *TuneD* will set the 'ondemand'
+    governor, if it is available. If it is not available, but the 'powersave'
+    governor is available, 'powersave' will be set. If neither of them are
+    available, the governor will not be changed.
+    +
+    .Specifying a CPU governor
+    ====
+    ----
+    [cpu]
+    governor=ondemand|powersave
+    ----
+    ====
+
+    `sampling_down_factor`:::
+    The sampling rate determines how frequently the governor checks
+    to tune the CPU. The [option]`sampling_down_factor` is a tunable
+    that multiplies the sampling rate when the CPU is at its highest
+    clock frequency thereby delaying load evaluation and improving
+    performance. Allowed values for sampling_down_factor are 1 to 100000.
+    +
+    .The recommended setting for jitter reduction
+    ====
+    ----
+    [cpu]
+    sampling_down_factor = 100
+    ----
+    ====
+
+    `energy_perf_bias`:::
+    [option]`energy_perf_bias` supports managing energy
+    vs. performance policy via x86 Model Specific Registers using the
+    `x86_energy_perf_policy` tool. Multiple alternative Energy Performance
+    Bias (EPB) values are supported. The alternative values are separated
+    using the '|' character. The following EPB values are supported
+    starting with kernel 4.13: "performance", "balance-performance",
+    "normal", "balance-power" and "power".
+    +
+    .Specifying alternative Energy Performance Bias values
+    ====
+    ----
+    [cpu]
+    energy_perf_bias=powersave|power
+    ----
+
+    *TuneD* will try to set EPB to 'powersave'. If that fails, it will
+    try to set it to 'power'.
+    ====
+
+    `latency_low, latency_high, load_threshold`:::
+    +
+    If the CPU load is lower than the value specified by
+    the[option]`load_threshold` option, the latency is set to the value
+    specified either by the [option]`latency_high` option or by the
+    [option]`latency_low` option.
+    +
+    `force_latency`:::
+    You can also force the latency to a specific value and prevent it from
+    dynamically changing further. To do so, set the [option]`force_latency`
+    option to the required latency value.
+    +
+    The maximum latency value can be specified in several ways:
+    +
+     * by a numerical value in microseconds (for example, `force_latency=10`)
+     * as the kernel CPU idle level ID of the maximum C-state allowed
+       (for example, force_latency = cstate.id:1)
+     * as a case-sensitive name of the maximum C-state allowed
+       (for example, force_latency = cstate.name:C1)
+     * by using 'None' as a fallback value to prevent errors when alternative
+       C-state IDs/names do not exist. When 'None' is used in the alternatives
+       pipeline, all the alternatives that follow 'None' are ignored.
+    +
+    It is also possible to specify multiple fallback values separated by '|' as
+    the C-state names and/or IDs may not be available on some systems.
+    +
+    .Specifying fallback C-state values
+    ====
+    ----
+    [cpu]
+    force_latency=cstate.name:C6|cstate.id:4|10
+    ----
+    This configuration tries to obtain and set the latency of C-state named C6.
+    If the C-state C6 does not exist, kernel CPU idle level ID 4 (state4) latency
+    is searched for in sysfs. Finally, if the state4 directory in sysfs is not found,
+    the last latency fallback value is `10` us. The value is encoded and written into
+    the kernel's PM QoS file `/dev/cpu_dma_latency`.
+    ====
+    +
+    .Specifying fallback C-state values using 'None'.
+    ====
+    ----
+    [cpu]
+    force_latency=cstate.name:XYZ|None
+    ----
+    In this case, if C-state with the name `XYZ` does not exist
+    [option]`force_latency`, no latency value will be written into the
+    kernel's PM QoS file, and no errors will be reported due to the
+    presence of 'None'.
+    ====
+
+    `min_perf_pct, max_perf_pct, no_turbo`:::
+    These options set the internals of the Intel P-State driver exposed via the kernel's
+    `sysfs` interface.
+    +
+    .Adjusting the configuration of the Intel P-State driver
+    ====
+    ----
+    [cpu]
+    min_perf_pct=100
+    ----
+    Limit the minimum P-State that will be requested by the driver. It states
+    it as a percentage of the max (non-turbo) performance level.
+    ====
+    """
 
     def __init__(self, *args, **kwargs):
         super(CPULatencyPlugin, self).__init__(*args, **kwargs)
@@ -175,7 +175,7 @@ class CPULatencyPlugin(base.Plugin):
         return [self._hardware_inventory.get_device("cpu", x) for x in devices]
 
     @classmethod
-    def _get_config_options(self):
+    def _get_config_options(cls):
         return {
             "load_threshold": 0.2,
             "latency_low": 100,
@@ -228,7 +228,8 @@ class CPULatencyPlugin(base.Plugin):
             self._has_energy_perf_bias = True
         elif retcode < 0:
             log.warning(
-                "unable to run x86_energy_perf_policy tool, ignoring CPU energy performance bias, is the tool installed?")
+                "unable to run x86_energy_perf_policy tool, "
+                "ignoring CPU energy performance bias, is the tool installed?")
         else:
             log.warning("your CPU doesn't support MSR_IA32_ENERGY_PERF_BIAS, ignoring CPU energy performance bias")
 
@@ -238,17 +239,17 @@ class CPULatencyPlugin(base.Plugin):
             log.info("intel_pstate detected")
 
     def _is_cpu_online(self, device):
-        sd = str(device)
         return self._cmd.is_cpu_online(str(device).replace("cpu", ""))
 
-    def _cpu_has_scaling_governor(self, device):
+    @staticmethod
+    def _cpu_has_scaling_governor(device):
         return os.path.exists("/sys/devices/system/cpu/%s/cpufreq/scaling_governor" % device)
 
     def _check_cpu_can_change_governor(self, device):
         if not self._is_cpu_online(device):
             log.debug("'%s' is not online, skipping" % device)
             return False
-        if not self._cpu_has_scaling_governor(device):
+        if not CPULatencyPlugin._cpu_has_scaling_governor(device):
             log.debug("there is no scaling governor fo '%s', skipping" % device)
             return False
         return True
@@ -340,7 +341,7 @@ class CPULatencyPlugin(base.Plugin):
         self._instance_update_dynamic(instance, device)
 
     def _instance_update_dynamic(self, instance, device):
-        assert (instance._first_instance)
+        assert instance._first_instance
         if device != instance._first_device:
             return
 
@@ -353,7 +354,8 @@ class CPULatencyPlugin(base.Plugin):
     def _instance_unapply_dynamic(self, instance, device):
         pass
 
-    def _str2int(self, s):
+    @staticmethod
+    def _str2int(s):
         try:
             return int(s)
         except (ValueError, TypeError):
@@ -366,7 +368,7 @@ class CPULatencyPlugin(base.Plugin):
             name = self._cmd.read_file(cstate_path + "name", err_ret=None, no_error=True)
             latency = self._cmd.read_file(cstate_path + "latency", err_ret=None, no_error=True)
             if name is not None and latency is not None:
-                latency = self._str2int(latency)
+                latency = CPULatencyPlugin._str2int(latency)
                 if latency is not None:
                     self.cstates_latency[name.strip()] = latency
 
@@ -384,12 +386,12 @@ class CPULatencyPlugin(base.Plugin):
 
     def _get_latency_by_cstate_id(self, lid, no_zero=False):
         log.debug("getting latency for cstate with ID '%s'" % str(lid))
-        lid = self._str2int(lid)
+        lid = CPULatencyPlugin._str2int(lid)
         if lid is None:
             log.debug("cstate ID is invalid")
             return None
         latency_path = cpuidle_states_path + "/%s/latency" % ("state%d" % lid)
-        latency = self._str2int(self._cmd.read_file(latency_path, err_ret=None, no_error=True))
+        latency = CPULatencyPlugin._str2int(self._cmd.read_file(latency_path, err_ret=None, no_error=True))
         if no_zero and latency == 0:
             log.debug("skipping latency 0 as set by param")
             return None
@@ -429,7 +431,8 @@ class CPULatencyPlugin(base.Plugin):
         if not skip and self._has_pm_qos:
             if latency is None:
                 log.error(
-                    "unable to evaluate latency value (probably wrong settings in the 'cpu' section of current profile), disabling PM QoS")
+                    "unable to evaluate latency value (probably wrong settings in "
+                    "the 'cpu' section of current profile), disabling PM QoS")
                 self._has_pm_qos = False
             elif self._latency != latency:
                 log.info("setting new cpu latency %d" % latency)
@@ -485,7 +488,8 @@ class CPULatencyPlugin(base.Plugin):
 
         return governor
 
-    def _sampling_down_factor_path(self, governor="ondemand"):
+    @staticmethod
+    def _sampling_down_factor_path(governor="ondemand"):
         return "/sys/devices/system/cpu/cpufreq/%s/sampling_down_factor" % governor
 
     @command_set("sampling_down_factor", per_device=True, priority=10)
@@ -521,19 +525,19 @@ class CPULatencyPlugin(base.Plugin):
         governor = self._get_governor(device, ignore_missing=ignore_missing)
         if governor is None:
             return None
-        path = self._sampling_down_factor_path(governor)
+        path = CPULatencyPlugin._sampling_down_factor_path(governor)
         if not os.path.exists(path):
             return None
         return self._cmd.read_file(path).strip()
 
     def _try_set_energy_perf_bias(self, cpu_id, value):
-        (retcode, out, err_msg) = self._cmd.execute(
+        (ret_code, out, err_msg) = self._cmd.execute(
             ["x86_energy_perf_policy",
              "-c", cpu_id,
              str(value)
              ],
             return_err=True)
-        return (retcode, err_msg)
+        return ret_code, err_msg
 
     @command_set("energy_perf_bias", per_device=True)
     def _set_energy_perf_bias(self, energy_perf_bias, device, sim):
@@ -568,31 +572,34 @@ class CPULatencyPlugin(base.Plugin):
         else:
             return None
 
-    def _try_parse_num(self, s):
+    @staticmethod
+    def _try_parse_num(s: str):
         try:
             v = int(s)
-        except ValueError as e:
+        except ValueError as _:
             try:
                 v = int(s, 16)
-            except ValueError as e:
+            except ValueError as _:
                 v = s
         return v
 
     # Before Linux 4.13
-    def _energy_perf_policy_to_human(self, s):
-        return {0: "performance", 6: "normal", 15: "powersave"}.get(self._try_parse_num(s), s)
+    @staticmethod
+    def _energy_perf_policy_to_human(s):
+        return {0: "performance", 6: "normal", 15: "powersave"}.get(CPULatencyPlugin._try_parse_num(s), s)
 
     # Since Linux 4.13
-    def _energy_perf_policy_to_human_v2(self, s):
+    @staticmethod
+    def _energy_perf_policy_to_human_v2(s):
         return {0: "performance",
                 4: "balance-performance",
                 6: "normal",
                 8: "balance-power",
                 15: "power",
-                }.get(self._try_parse_num(s), s)
+                }.get(CPULatencyPlugin._try_parse_num(s), s)
 
     @command_get("energy_perf_bias")
-    def _get_energy_perf_bias(self, device, ignore_missing=False):
+    def _get_energy_perf_bias(self, device):
         energy_perf_bias = None
         if not self._is_cpu_online(device):
             log.debug("%s is not online, skipping" % device)
@@ -604,10 +611,10 @@ class CPULatencyPlugin(base.Plugin):
                 for line in lines.splitlines():
                     l = line.split()
                     if len(l) == 2:
-                        energy_perf_bias = self._energy_perf_policy_to_human(l[1])
+                        energy_perf_bias = CPULatencyPlugin._energy_perf_policy_to_human(l[1])
                         break
                     elif len(l) == 3:
-                        energy_perf_bias = self._energy_perf_policy_to_human_v2(l[2])
+                        energy_perf_bias = CPULatencyPlugin._energy_perf_policy_to_human_v2(l[2])
                         break
 
         return energy_perf_bias

@@ -1,6 +1,5 @@
 import re
 import tuned.consts as consts
-import tuned.profiles.variables
 import tuned.logs
 import collections
 from tuned.utils.commands import commands
@@ -68,7 +67,7 @@ class Plugin(object):
     #
 
     @classmethod
-    def _get_config_options(self):
+    def _get_config_options(cls):
         """Default configuration options for the plugin."""
         return {}
 
@@ -78,7 +77,7 @@ class Plugin(object):
         return {}
 
     @classmethod
-    def _get_config_options_used_by_dynamic(self):
+    def _get_config_options_used_by_dynamic(cls):
         """List of config options used by dynamic tuning. Their previous values will be automatically saved and
         restored."""
         return []
@@ -94,7 +93,8 @@ class Plugin(object):
                 log.warn("Unknown option '%s' for plugin '%s'." % (key, self.__class__.__name__))
         return effective
 
-    def _option_bool(self, value):
+    @staticmethod
+    def _option_bool(value):
         if type(value) is bool:
             return value
         value = str(value).lower()
@@ -110,7 +110,7 @@ class Plugin(object):
             raise Exception("Plugin instance with name '%s' already exists." % name)
 
         effective_options = self._get_effective_options(options)
-        instance = self._instance_factory.create(self, name, devices_expression, devices_udev_regex, \
+        instance = self._instance_factory.create(self, name, devices_expression, devices_udev_regex,
                                                  script_pre, script_post, effective_options)
         self._instances[name] = instance
 
@@ -196,9 +196,8 @@ class Plugin(object):
         if not self._devices_supported:
             return
 
-        to_release = (instance.processed_devices \
-                      | instance.assigned_devices) \
-                     & self._assigned_devices
+        to_release = (instance.processed_devices
+                      | instance.assigned_devices) & self._assigned_devices
 
         instance.active = False
         instance.processed_devices.clear()
@@ -230,7 +229,7 @@ class Plugin(object):
             log.warn("Instance '%s': no device to call script '%s' for." % (instance.name, script))
             return None
         if not script.startswith("/"):
-            log.error("Relative paths cannot be used in script_pre or script_post. " \
+            log.error("Relative paths cannot be used in script_pre or script_post. "
                       + "Use ${i:PROFILE_DIR}.")
             return False
         dir_name = os.path.dirname(script)
@@ -335,9 +334,9 @@ class Plugin(object):
 
     def _instance_verify_static(self, instance, ignore_missing, devices):
         ret = True
-        if self._verify_all_non_device_commands(instance, ignore_missing) == False:
+        if not self._verify_all_non_device_commands(instance, ignore_missing):
             ret = False
-        if self._verify_all_device_commands(instance, devices, ignore_missing) == False:
+        if not self._verify_all_device_commands(instance, devices, ignore_missing):
             ret = False
         return ret
 
@@ -463,7 +462,7 @@ class Plugin(object):
         for command in [command for command in list(self._commands.values()) if not command["per_device"]]:
             new_value = self._variables.expand(instance.options.get(command["name"], None))
             if new_value is not None:
-                if not self._verify_non_device_command(instance, command, new_value, ignore_missing):
+                if not instance.verify_non_device_command(command, new_value, ignore_missing):
                     ret = False
         return ret
 
@@ -474,11 +473,12 @@ class Plugin(object):
             if new_value is None:
                 continue
             for device in devices:
-                if not self._verify_device_command(instance, command, device, new_value, ignore_missing):
+                if not instance.verify_device_command(command, device, new_value, ignore_missing):
                     ret = False
         return ret
 
-    def _process_assignment_modifiers(self, new_value, current_value):
+    @staticmethod
+    def _process_assignment_modifiers(new_value, current_value):
         if new_value is not None:
             nws = str(new_value)
             if len(nws) <= 1:
@@ -504,7 +504,8 @@ class Plugin(object):
                     "new value" % (val, current_value, op, new_value))
         return new_value
 
-    def _get_current_value(self, command, device=None, ignore_missing=False):
+    @staticmethod
+    def _get_current_value(command, device=None, ignore_missing=False):
         if device is not None:
             return command["get"](device, ignore_missing=ignore_missing)
         else:
@@ -571,7 +572,8 @@ class Plugin(object):
                                       current_value, device=device)
         return ret
 
-    def _log_verification_result(self, name, success, new_value,
+    @staticmethod
+    def _log_verification_result(name, success, new_value,
                                  current_value, device=None):
         if success:
             if device is None:
@@ -588,21 +590,21 @@ class Plugin(object):
                     device, name, str(current_value).strip(), str(new_value).strip()))
             return False
 
-    def _verify_device_command(self, instance, command, device, new_value, ignore_missing):
+    def _verify_device_command(self, command, device, new_value, ignore_missing):
         if command["custom"] is not None:
             return command["custom"](True, new_value, device, True, ignore_missing)
         current_value = self._get_current_value(command, device, ignore_missing=ignore_missing)
-        new_value = self._process_assignment_modifiers(new_value, current_value)
+        new_value = Plugin._process_assignment_modifiers(new_value, current_value)
         if new_value is None:
             return None
         new_value = command["set"](new_value, device, True)
         return self._verify_value(command["name"], new_value, current_value, ignore_missing, device)
 
-    def _verify_non_device_command(self, instance, command, new_value, ignore_missing):
+    def verify_non_device_command(self, command, new_value, ignore_missing):
         if command["custom"] is not None:
             return command["custom"](True, new_value, True, ignore_missing)
         current_value = self._get_current_value(command)
-        new_value = self._process_assignment_modifiers(new_value, current_value)
+        new_value = Plugin._process_assignment_modifiers(new_value, current_value)
         if new_value is None:
             return None
         new_value = command["set"](new_value, True)

@@ -1,11 +1,9 @@
+import os
+
+import tuned.logs
+from tuned.utils.commands import commands
 from . import base
 from .decorators import *
-import tuned.logs
-
-import os
-import struct
-import glob
-from tuned.utils.commands import commands
 
 log = tuned.logs.get()
 cmd = commands()
@@ -13,29 +11,35 @@ cmd = commands()
 
 class VMPlugin(base.Plugin):
     """
-	`vm`::
-	
-	Enables or disables transparent huge pages depending on value of the
-	[option]`transparent_hugepages` option. The option can have one of three
-	possible values `always`, `madvise` and `never`.
-	+
-	.Disable transparent hugepages
-	====
-	----
-	[vm]
-	transparent_hugepages=never
-	----
-	====
-	+
-	The [option]`transparent_hugepage.defrag` option specifies the
-	defragmentation policy. Possible values for this option are `always`,
-	`defer`, `defer+madvise`, `madvise` and `never`. For a detailed
-	explanation of these values refer to
-	link:https://www.kernel.org/doc/Documentation/vm/transhuge.txt[Transparent Hugepage Support].
-	"""
+    `vm`::
+
+    Enables or disables transparent huge pages depending on value of the
+    [option]`transparent_hugepages` option. The option can have one of three
+    possible values `always`, `madvise` and `never`.
+    +
+    .Disable transparent hugepages
+    ====
+    ----
+    [vm]
+    transparent_hugepages=never
+    ----
+    ====
+    +
+    The [option]`transparent_hugepage.defrag` option specifies the
+    defragmentation policy. Possible values for this option are `always`,
+    `defer`, `defer+madvise`, `madvise` and `never`. For a detailed
+    explanation of these values refer to
+    link:https://www.kernel.org/doc/Documentation/vm/transhuge.txt[Transparent Hugepage Support].
+    """
+
+    def _instance_unapply_dynamic(self, instance, device):
+        pass
+
+    def _instance_update_dynamic(self, instance, device):
+        pass
 
     @classmethod
-    def _get_config_options(self):
+    def _get_config_options(cls):
         return {
             "transparent_hugepages": None,
             "transparent_hugepage": None,
@@ -50,7 +54,7 @@ class VMPlugin(base.Plugin):
         pass
 
     @classmethod
-    def _thp_path(self):
+    def _thp_path(cls):
         path = "/sys/kernel/mm/transparent_hugepage"
         if not os.path.exists(path):
             # RHEL-6 support

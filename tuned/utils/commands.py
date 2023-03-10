@@ -269,7 +269,8 @@ class commands:
     # Helper for parsing kernel options like:
     # [always] never
     # It will return 'always'
-    def get_active_option(self, options, dosplit=True):
+    @staticmethod
+    def get_active_option(options, dosplit=True):
         m = re.match(r'.*\[([^\]]+)\].*', options)
         if m:
             return m.group(1)
