@@ -1178,12 +1178,12 @@ class SchedulerPlugin(base.Plugin):
             else:
                 log.error("Failed to get cmdline of PID %d: %s" % (pid, e))
             return
+
         v = self._cmd.re_lookup(instance._sched_lookup, cmd, r)
         if v is not None and pid not in self._scheduler_original:
             log.debug("tuning new process '%s' with PID '%d' by '%s'" % (cmd, pid, str(v)))
             (sched, prio, affinity) = v
-            self._tune_process(pid, cmd, sched, prio,
-                               affinity)
+            self._tune_process(pid, cmd, sched, prio, affinity)
             self._storage.set(self._scheduler_storage_key,
                               self._scheduler_original)
 
@@ -1203,6 +1203,7 @@ class SchedulerPlugin(base.Plugin):
         fds = instance._evlist.get_pollfd()
         for fd in fds:
             poll.register(fd)
+
         while not instance._terminate.is_set():
             # timeout to poll in milliseconds
             if len(poll.poll(self._sleep_interval * 1000)) > 0 and not instance._terminate.is_set():
@@ -1215,9 +1216,10 @@ class SchedulerPlugin(base.Plugin):
                             read_events = True
                             if event.type == perf.RECORD_COMM or \
                                     (self._perf_process_fork_value and event.type == perf.RECORD_FORK):
+                                # TODO this line unclear
                                 self._add_pid(instance, int(event.tid), r)
                             elif event.type == perf.RECORD_EXIT:
-                                self._remove_pid(instance, int(event.tid))
+                                self._remove_pid(int(event.tid))
 
     @command_custom("cgroup_ps_blacklist", per_device=False)
     def _cgroup_ps_blacklist(self, enabling, value, verify, ignore_missing):

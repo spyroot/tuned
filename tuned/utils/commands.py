@@ -59,7 +59,8 @@ class commands:
         return l
 
     # Compile regex to speedup multiple_re_replace or re_lookup
-    def re_lookup_compile(self, d):
+    @staticmethod
+    def re_lookup_compile(d):
         if d is None:
             return None
         return re.compile("(%s)" % ")|(".join(list(d.keys())))
@@ -67,7 +68,8 @@ class commands:
     # Do multiple regex replaces in 's' according to lookup table described by
     # dictionary 'd', e.g.: d = {"re1": "replace1", "re2": "replace2", ...}
     # r can be regex precompiled by re_lookup_compile for speedup
-    def multiple_re_replace(self, d, s, r=None, flags=0):
+    @staticmethod
+    def multiple_re_replace(d, s, r=None, flags=0):
         if d is None:
             if r is None:
                 return s
@@ -75,18 +77,19 @@ class commands:
             if len(d) == 0 or s is None:
                 return s
         if r is None:
-            r = self.re_lookup_compile(d)
+            r = commands.re_lookup_compile(d)
         return r.sub(lambda mo: list(d.values())[mo.lastindex - 1], s, flags)
 
     # Do regex lookup on 's' according to lookup table described by
     # dictionary 'd' and return corresponding value from the dictionary,
     # e.g.: d = {"re1": val1, "re2": val2, ...}
     # r can be regex precompiled by re_lookup_compile for speedup
-    def re_lookup(self, d, s, r=None):
+    @staticmethod
+    def re_lookup(d, s, r=None):
         if len(d) == 0 or s is None:
             return None
         if r is None:
-            r = self.re_lookup_compile(d)
+            r = commands.re_lookup_compile(d)
         mo = r.search(s)
         if mo:
             return list(d.values())[mo.lastindex - 1]
@@ -178,7 +181,7 @@ class commands:
         data = self.read_file(f)
         if len(data) <= 0:
             return False
-        return self.write_to_file(f, self.multiple_re_replace(d, data, flags=re.MULTILINE))
+        return self.write_to_file(f, commands.multiple_re_replace(d, data, flags=re.MULTILINE))
 
     # makes sure that options from 'd' are set to values from 'd' in file 'f',
     # when needed it edits options or add new options if they don't
@@ -245,7 +248,7 @@ class commands:
             out, err = proc.communicate()
 
             retcode = proc.returncode
-            if retcode and not retcode in no_errors and not 0 in no_errors:
+            if retcode and retcode not in no_errors and 0 not in no_errors:
                 err_out = err[:-1]
                 if len(err_out) == 0:
                     err_out = out[:-1]
@@ -254,7 +257,7 @@ class commands:
                     self._error(err_msg)
         except (OSError, IOError) as e:
             retcode = -e.errno if e.errno is not None else -1
-            if not abs(retcode) in no_errors and not 0 in no_errors:
+            if not abs(retcode) in no_errors and 0 not in no_errors:
                 err_msg = "Executing %s error: %s" % (args[0], e)
                 if not return_err:
                     self._error(err_msg)
