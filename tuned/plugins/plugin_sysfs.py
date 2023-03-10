@@ -42,8 +42,6 @@ class SysfsPlugin(base.Plugin):
         self._cmd = commands()
 
     def _instance_init(self, instance):
-        print(f"Creating instance {type(instance)}")
-        log.info(f"Instance of {type(instance)}")
         instance._has_dynamic_tuning = False
         instance._has_static_tuning = True
         instance.sysfs = dict(
@@ -53,22 +51,6 @@ class SysfsPlugin(base.Plugin):
 
     def _instance_cleanup(self, instance):
         pass
-    #
-    # @property
-    # def sysfs(self):
-    #     return self._sysfs
-    #
-    # @sysfs.setter
-    # def sysfs(self, v):
-    #     self._sysfs = v
-    #
-    # @property
-    # def sysfs_original(self):
-    #     return self._sysfs_original
-    #
-    # @sysfs_original.setter
-    # def sysfs_original(self, v):
-    #     self._sysfs_original = v
 
     def _instance_apply_static(self, instance):
         for key, value in list(instance.sysfs.items()):

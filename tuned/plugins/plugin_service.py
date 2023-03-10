@@ -1,6 +1,7 @@
 import collections
 import os
 import re
+from abc import abstractmethod
 
 import tuned.consts as consts
 import tuned.logs
@@ -20,7 +21,9 @@ class Service:
 
 
 class InitHandler:
-    def runlevel_get(self):
+
+    @staticmethod
+    def runlevel_get():
         (ret_code, out) = cmd.execute(["runlevel"])
         return out.split()[-1] if ret_code == 0 else None
 
@@ -40,6 +43,7 @@ class InitHandler:
 
 # no enable/disable
 class SysVBasicHandler(InitHandler):
+
     @staticmethod
     def start(name):
         cmd.execute(["service", name, "start"])
@@ -48,10 +52,14 @@ class SysVBasicHandler(InitHandler):
     def stop(name):
         cmd.execute(["service", name, "stop"])
 
-    def enable(self, name, runlevel):
+    @staticmethod
+    @abstractmethod
+    def enable(name, runlevel):
         raise NotImplementedError()
 
-    def disable(self, name, runlevel):
+    @staticmethod
+    @abstractmethod
+    def disable(name, runlevel):
         raise NotImplementedError()
 
     @staticmethod
@@ -59,38 +67,46 @@ class SysVBasicHandler(InitHandler):
         (ret_code, out) = cmd.execute(["service", name, "status"], no_errors=[0])
         return ret_code == 0
 
-    def is_enabled(self, name, runlevel):
+    @staticmethod
+    def is_enabled(name, runlevel):
         raise NotImplementedError()
 
 
 class SysVHandler(SysVBasicHandler):
-    def enable(self, name, runlevel):
+    @staticmethod
+    def enable(name, runlevel):
         cmd.execute(["chkconfig", "--level", runlevel, name, "on"])
 
-    def disable(self, name, runlevel):
+    @staticmethod
+    def disable(name, runlevel):
         cmd.execute(["chkconfig", "--level", runlevel, name, "off"])
 
-    def is_enabled(self, name, runlevel):
+    @staticmethod
+    def is_enabled(name, runlevel):
         (ret_code, out) = cmd.execute(["chkconfig", "--list", name])
         return out.split("%s:" % str(runlevel))[1][:2] == "on" if ret_code == 0 else None
 
 
 class SysVRCHandler(SysVBasicHandler):
-    def enable(self, name, runlevel):
+    @staticmethod
+    def enable(name, runlevel):
         cmd.execute(["sysv-rc-conf", "--level", runlevel, name, "on"])
 
-    def disable(self, name, runlevel):
+    @staticmethod
+    def disable(name, runlevel):
         cmd.execute(["sysv-rc-conf", "--level", runlevel, name, "off"])
 
-    def is_enabled(self, name, runlevel):
+    @staticmethod
+    def is_enabled(name, runlevel):
         (ret_code, out) = cmd.execute(["sysv-rc-conf", "--list", name])
         return out.split("%s:" % str(runlevel))[1][:2] == "on" if ret_code == 0 else None
 
 
 class OpenRCHandler(InitHandler):
-    def runlevel_get(self):
-        (retcode, out) = cmd.execute(["rc-status", "-r"])
-        return out.strip() if retcode == 0 else None
+    @staticmethod
+    def runlevel_get():
+        (ret_code, out) = cmd.execute(["rc-status", "-r"])
+        return out.strip() if ret_code == 0 else None
 
     @staticmethod
     def start(name):
@@ -121,7 +137,9 @@ class OpenRCHandler(InitHandler):
 
 class SystemdHandler(InitHandler):
     # runlevel not used
-    def runlevel_get(self):
+
+    @staticmethod
+    def runlevel_get():
         return ""
 
     @staticmethod
@@ -234,17 +252,17 @@ class ServicePlugin(base.Plugin):
     ====
     """
 
-    def _instance_unapply_dynamic(self, instance, device):
-        pass
-
-    def _instance_update_dynamic(self, instance, device):
-        pass
-
     def __init__(self, *args, **kwargs):
         super(ServicePlugin, self).__init__(*args, **kwargs)
         self._services_original = None
         self._has_dynamic_options = True
         self._init_handler = self._detect_init_system()
+
+    def _instance_unapply_dynamic(self, instance, device):
+        pass
+
+    def _instance_update_dynamic(self, instance, device):
+        pass
 
     @staticmethod
     def _check_cmd(command):
