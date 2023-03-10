@@ -573,6 +573,8 @@ class SchedulerPlugin(base.Plugin):
 
     @property
     def runtime_tuning(self):
+        if not hasattr(self, "runtime_tuning"):
+            self._runtime_tuning = False
         return self._runtime_tuning
 
     @runtime_tuning.setter
