@@ -633,6 +633,7 @@ class BootloaderPlugin(base.Plugin):
                         if len(kv) == 2 and len(kv[1].strip()) > 0:
                             filtered_empty.append(k)
                 without_empty = " ".join(filtered_empty)
+                log.info(f"filtered {without_empty}")
                 data = re.sub(r"\b(" + o + r"\s*=).*$",
                               r"\1" + without_empty, data, flags=re.MULTILINE)
 
