@@ -532,7 +532,7 @@ class SchedulerPlugin(base.Plugin):
             global_cfg,
             variables)
 
-        self._runtime_tuning = False
+        self.runtime_tuning = False
         self._has_dynamic_options = True
         self._daemon = consts.CFG_DEF_DAEMON
         self._sleep_interval = int(consts.CFG_DEF_SLEEP_INTERVAL)
@@ -572,16 +572,16 @@ class SchedulerPlugin(base.Plugin):
             return 0
         # round up to the nearest power of two value
         return int(2 ** math.ceil(math.log(mp, 2)))
-
-    @property
-    def runtime_tuning(self):
-        if not hasattr(self, "runtime_tuning"):
-            self._runtime_tuning = False
-        return self._runtime_tuning
-
-    @runtime_tuning.setter
-    def runtime_tuning(self, v):
-        self._runtime_tuning = v
+    #
+    # @property
+    # def runtime_tuning(self):
+    #     if not hasattr(self, "runtime_tuning"):
+    #         self._runtime_tuning = False
+    #     return self._runtime_tuning
+    #
+    # @runtime_tuning.setter
+    # def runtime_tuning(self, v):
+    #     self._runtime_tuning = v
 
     def _instance_init(self, instance):
         instance._has_dynamic_tuning = False
