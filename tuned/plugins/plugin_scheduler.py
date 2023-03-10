@@ -1217,7 +1217,7 @@ class SchedulerPlugin(base.Plugin):
                             if event.type == perf.RECORD_COMM or \
                                     (self._perf_process_fork_value and event.type == perf.RECORD_FORK):
                                 # TODO this line unclear
-                                self._add_pid(instance, int(event.tid), r)
+                                self._add_pid(int(event.tid), r)
                             elif event.type == perf.RECORD_EXIT:
                                 self._remove_pid(int(event.tid))
 
