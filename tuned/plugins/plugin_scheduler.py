@@ -537,8 +537,10 @@ class SchedulerPlugin(base.Plugin):
         self._daemon = consts.CFG_DEF_DAEMON
         self._sleep_interval = int(consts.CFG_DEF_SLEEP_INTERVAL)
         if global_cfg is not None:
-            self._daemon = global_cfg.get_bool(consts.CFG_DAEMON, consts.CFG_DEF_DAEMON)
-            self._sleep_interval = int(global_cfg.get(consts.CFG_SLEEP_INTERVAL, consts.CFG_DEF_SLEEP_INTERVAL))
+            self._daemon = global_cfg.get_bool(
+                consts.CFG_DAEMON, consts.CFG_DEF_DAEMON)
+            self._sleep_interval = int(global_cfg.get(
+                consts.CFG_SLEEP_INTERVAL, consts.CFG_DEF_SLEEP_INTERVAL))
         self._cmd = commands()
         # helper variable utilized for showing hint only once that the error may be caused by Secure Boot
         self._secure_boot_hint = None
@@ -573,7 +575,7 @@ class SchedulerPlugin(base.Plugin):
 
     @property
     def runtime_tuning(self):
-        if not hasattr(self, "_runtime_tuning"):
+        if not hasattr(self, "runtime_tuning"):
             self._runtime_tuning = False
         return self._runtime_tuning
 
@@ -587,7 +589,7 @@ class SchedulerPlugin(base.Plugin):
         # this is hack, runtime_tuning should be covered by dynamic_tuning configuration
         # TODO: add per plugin dynamic tuning configuration and use dynamic_tuning configuration
         # instead of runtime_tuning
-        instance._runtime_tuning = True
+        instance.runtime_tuning = True
 
         # FIXME: do we want to do this here?
         # recover original values in case of crash
