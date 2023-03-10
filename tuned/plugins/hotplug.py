@@ -1,3 +1,5 @@
+from abc import ABC
+
 from . import base
 import tuned.consts as consts
 import tuned.logs
@@ -5,7 +7,7 @@ import tuned.logs
 log = tuned.logs.get()
 
 
-class Plugin(base.Plugin):
+class Plugin(base.Plugin, ABC):
     """
     Base class for plugins with device hotpluging support.
     """
