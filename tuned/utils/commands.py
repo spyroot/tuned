@@ -1,12 +1,12 @@
 import errno
 import hashlib
-import tuned.logs
-import copy
 import os
-import shutil
-import tuned.consts as consts
 import re
+import shutil
 from subprocess import *
+
+import tuned.consts as consts
+import tuned.logs
 from tuned.exceptions import TunedException
 
 log = tuned.logs.get()
@@ -94,12 +94,13 @@ class commands:
 
     def write_to_file(self, f, data, makedir=False, no_error=False):
         self._debug("Writing to file: '%s' < '%s'" % (f, data))
+        d = None
         if makedir:
             d = os.path.dirname(f)
             if os.path.isdir(d):
                 makedir = False
         try:
-            if makedir:
+            if makedir and d is not None:
                 os.makedirs(d)
             fd = open(f, "w")
             fd.write(str(data))
@@ -176,7 +177,7 @@ class commands:
     def multiple_replace_in_file(self, f, d):
         data = self.read_file(f)
         if len(data) <= 0:
-            return False;
+            return False
         return self.write_to_file(f, self.multiple_re_replace(d, data, flags=re.MULTILINE))
 
     # makes sure that options from 'd' are set to values from 'd' in file 'f',
@@ -189,12 +190,13 @@ class commands:
             o = str(opt)
             v = str(d[opt])
             if re.search(r"\b" + o + r"\s*=.*$", data, flags=re.MULTILINE) is None:
-                if add:
-                    if len(data) > 0 and data[-1] != "\n":
-                        data += "\n"
+                if add and len(data) > 0 and data[-1] != "\n":
+                    data += "\n"
                     data += "%s=\"%s\"\n" % (o, v)
             else:
-                data = re.sub(r"\b(" + o + r"\s*=).*$", r"\1" + "\"" + self.escape(v) + "\"", data, flags=re.MULTILINE)
+                data = re.sub(r"\b(" + o + r"\s*=).*$",
+                              r"\1" + "\"" + self.escape(v) + "\"",
+                              data, flags=re.MULTILINE)
 
         return self.write_to_file(f, data)
 
@@ -208,14 +210,22 @@ class commands:
         data = self.read_file(f)
         return hashlib.sha256(str(data).encode("utf-8")).hexdigest()
 
-    # returns machine ID or empty string "" in case of error
     def get_machine_id(self, no_error=True):
-        return self.read_file(consts.MACHINE_ID_FILE, no_error).strip()
+        """Returns machine ID or machine ID or empty string "" in case of error
+        """
+        return self.read_file(consts.MACHINE_ID_FILE, no_error=no_error).strip()
 
     # "no_errors" can be list of return codes not treated as errors, if 0 is in no_errors, it means any error
     # returns (retcode, out), where retcode is exit code of the executed process or -errno if
     # OSError or IOError exception happened
-    def execute(self, args, shell=False, cwd=None, env={}, no_errors=[], return_err=False):
+    def execute(self, args, shell=False, cwd=None, env=None, no_errors=None, return_err=False):
+
+        if no_errors is None:
+            no_errors = []
+
+        if env is None:
+            env = {}
+
         retcode = 0
         _environment = os.environ.copy()
         _environment["LC_ALL"] = "C"
@@ -225,10 +235,12 @@ class commands:
         out = ""
         err_msg = None
         try:
-            proc = Popen(args, stdout=PIPE, stderr=PIPE, \
-                         env=_environment, \
-                         shell=shell, cwd=cwd, \
-                         close_fds=True, \
+            proc = Popen(args,
+                         stdout=PIPE,
+                         stderr=PIPE,
+                         env=_environment,
+                         shell=shell, cwd=cwd,
+                         close_fds=True,
                          universal_newlines=True)
             out, err = proc.communicate()
 
@@ -330,11 +342,12 @@ class commands:
                 elif sv and (sv[0] == "^" or sv[0] == "!"):
                     nl = sv[1:].split("-")
                     try:
-                        if (len(nl) > 1):
-                            negation_list += list(range(
-                                int(nl[0]),
-                                int(nl[1]) + 1
-                            )
+                        if len(nl) > 1:
+                            negation_list += list(
+                                range(
+                                    int(nl[0]),
+                                    int(nl[1]) + 1
+                                )
                             )
                         else:
                             negation_list.append(int(sv[1:]))
@@ -476,7 +489,7 @@ class commands:
             manual = mode == consts.ACTIVE_PROFILE_MANUAL
         if profile_name == "":
             profile_name = None
-        return (profile_name, manual)
+        return profile_name, manual
 
     def save_active_profile(self, profile_name, manual):
         try:
